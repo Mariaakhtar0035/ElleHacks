@@ -6,7 +6,7 @@ import { useParams, usePathname } from "next/navigation";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
 import { NarratorBanner } from "@/components/NarratorBanner";
 import { AskNarratorModal } from "@/components/AskNarratorModal";
-import { getStudent, getStudentMissions, getAvailableMissions } from "@/lib/store";
+import { getStudent, getStudentMissions, getAvailableMissions, getMissions, getRewards } from "@/lib/store";
 import { NarratorPage } from "@/types";
 
 export default function StudentLayout({
@@ -54,6 +54,20 @@ export default function StudentLayout({
   const currentPage = getPage();
   const studentMissions = getStudentMissions(studentId);
   const availableMissions = getAvailableMissions();
+  const allMissions = getMissions();
+  const allRewards = getRewards();
+  const completedMissions = allMissions.filter((m) => m.assignedStudentId === studentId && m.status === "COMPLETED");
+  const purchasedRewardItems = allRewards.filter((r) => student.purchasedRewards.includes(r.id));
+  const askNarratorContext = {
+    spendTokens: student.spendTokens,
+    growTokens: student.growTokens,
+    currentPage,
+    assignedMissionsCount: studentMissions.length,
+    assignedMissionTitles: studentMissions.map((m) => m.title),
+    completedMissionTitles: completedMissions.slice(-3).map((m) => m.title),
+    purchasedRewardsCount: student.purchasedRewards.length,
+    purchasedRewardTitles: purchasedRewardItems.map((r) => r.title),
+  };
   const [showAskModal, setShowAskModal] = useState(false);
 
   const avatarEmoji = student.id === "alex" ? "👦" : student.id === "jordan" ? "👧" : "🧒";
@@ -143,6 +157,7 @@ export default function StudentLayout({
         isOpen={showAskModal}
         onClose={() => setShowAskModal(false)}
         studentName={student.name}
+        context={askNarratorContext}
       />
     </div>
   );

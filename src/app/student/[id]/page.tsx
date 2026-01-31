@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/EmptyState";
-import { getStudent, getStudentMissions } from "@/lib/store";
+import { getStudent, getStudentMissions, getRewards } from "@/lib/store";
 import { TokenChip } from "@/components/ui/TokenChip";
 
 export default function StudentDashboard() {
@@ -19,6 +19,10 @@ export default function StudentDashboard() {
 
   const completedMissions = missions.filter((m) => m.status === "COMPLETED");
   const totalEarned = student.spendTokens + student.growTokens;
+  const rewards = getRewards();
+  const purchasedRewardItems = rewards.filter((r) =>
+    student.purchasedRewards.includes(r.id)
+  );
 
   return (
     <div className="space-y-8">
@@ -82,6 +86,32 @@ export default function StudentDashboard() {
           </p>
         </Card>
       </div>
+
+      {/* My Purchases */}
+      <Card borderColor="border-emerald-500" className="p-8">
+        <h2 className="font-display font-bold text-2xl text-gray-900 mb-6">
+          My Purchases
+        </h2>
+        {purchasedRewardItems.length === 0 ? (
+          <p className="text-gray-600 text-center py-4">
+            No purchases yet. Visit the reward shop to spend your tokens!
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {purchasedRewardItems.map((reward) => (
+              <div
+                key={reward.id}
+                className="flex flex-col items-center p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200"
+              >
+                <span className="text-4xl mb-2">{reward.icon}</span>
+                <span className="font-display font-bold text-gray-900 text-center text-sm">
+                  {reward.title}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
 
       {/* Quick Actions */}
       <Card borderColor="border-amber-400" className="p-8">

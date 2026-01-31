@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
 import { MissionFormModal } from "@/components/MissionFormModal";
+import { RewardFormModal } from "@/components/RewardFormModal";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import { AssignMissionModal } from "@/components/AssignMissionModal";
 import { SuccessSparkle } from "@/components/SuccessSparkle";
 import {
   getStudents,
   getMissions,
+  getRewards,
   assignMission,
   unassignMission,
   completeMission,
@@ -21,22 +23,25 @@ import {
   updateMission,
   deleteMission,
   calculateReward,
+  createReward,
+  updateReward,
+  deleteReward,
 } from "@/lib/store";
-import { Mission, MissionBandColor } from "@/types";
+import { Mission, MissionBandColor, Reward } from "@/types";
 
 const BAND_CLASSES: Record<MissionBandColor, string> = {
-  red: "bg-red-400",
-  green: "bg-green-500",
-  blue: "bg-blue-500",
-  amber: "bg-amber-400",
-  orange: "bg-orange-400",
-  purple: "bg-purple-500",
-  sky: "bg-sky-400",
-  brown: "bg-amber-700",
+  green: "bg-green-600",
+  darkBlue: "bg-blue-800",
+  lightBlue: "bg-sky-400",
+  red: "bg-red-600",
+  yellow: "bg-amber-400",
+  orange: "bg-orange-500",
+  brown: "bg-amber-800",
+  purple: "bg-purple-600",
 };
 
 function getBandColorKey(mission: Mission): MissionBandColor {
-  const colors: MissionBandColor[] = ["red", "green", "blue", "amber", "orange", "purple", "sky", "brown"];
+  const colors: MissionBandColor[] = ["green", "darkBlue", "lightBlue", "red", "yellow", "orange", "brown", "purple"];
   if (mission.bandColor) return mission.bandColor;
   let hash = 0;
   for (let i = 0; i < mission.id.length; i++) {
@@ -58,10 +63,16 @@ export default function TeacherDashboard() {
   const [missionToDelete, setMissionToDelete] = useState<Mission | null>(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [missionToAssign, setMissionToAssign] = useState<Mission | null>(null);
+  const [showRewardFormModal, setShowRewardFormModal] = useState(false);
+  const [editingReward, setEditingReward] = useState<Reward | null>(null);
+  const [showRewardDeleteModal, setShowRewardDeleteModal] = useState(false);
+  const [rewardToDelete, setRewardToDelete] = useState<Reward | null>(null);
+  const [rewards, setRewards] = useState(getRewards());
 
   const refreshData = () => {
     setStudents(getStudents());
     setMissions(getMissions());
+    setRewards(getRewards());
     setPendingMissions(getPendingApprovalMissions());
   };
 
@@ -126,6 +137,32 @@ export default function TeacherDashboard() {
     triggerSuccess("Mission removed.");
     setMissionToDelete(null);
     setShowDeleteModal(false);
+  };
+
+  const handleRewardFormSubmit = (data: {
+    title: string;
+    description: string;
+    cost: number;
+    icon: string;
+    soldOut?: boolean;
+  }) => {
+    if (editingReward) {
+      updateReward(editingReward.id, data);
+      triggerSuccess("Reward updated!");
+    } else {
+      createReward(data);
+      triggerSuccess("Reward added!");
+    }
+    setShowRewardFormModal(false);
+    setEditingReward(null);
+  };
+
+  const handleRewardDeleteConfirm = () => {
+    if (!rewardToDelete) return;
+    deleteReward(rewardToDelete.id);
+    triggerSuccess("Reward removed.");
+    setRewardToDelete(null);
+    setShowRewardDeleteModal(false);
   };
 
   const requestedMissions = missions.filter(
@@ -249,6 +286,78 @@ export default function TeacherDashboard() {
                   </div>
                 );
               })}
+            </div>
+          )}
+        </Card>
+
+        {/* All Rewards - CRUD */}
+        <Card borderColor="border-emerald-500" className="p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 font-display">
+              🎁 All Rewards
+            </h2>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setEditingReward(null);
+                setShowRewardFormModal(true);
+              }}
+              className="shrink-0"
+            >
+              + Add Reward
+            </Button>
+          </div>
+
+          {rewards.length === 0 ? (
+            <p className="text-gray-600 text-center py-8 font-display">
+              No rewards yet. Add one to get started!
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {rewards.map((reward) => (
+                <div
+                  key={reward.id}
+                  className="flex flex-col rounded-2xl border-2 border-gray-200 overflow-hidden bg-white shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5"
+                >
+                  <div className="p-4 flex-1 flex flex-col items-center text-center gap-2">
+                    <div className="text-5xl">{reward.icon}</div>
+                    <h3 className="font-display font-bold text-gray-900 text-sm line-clamp-2">
+                      {reward.title}
+                    </h3>
+                    <p className="text-gray-600 text-xs line-clamp-2">{reward.description}</p>
+                    <span className="font-display font-bold text-amber-800 text-sm">
+                      🪙 {reward.cost} tokens
+                    </span>
+                    {reward.soldOut && (
+                      <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded">
+                        Sold Out
+                      </span>
+                    )}
+                    <div className="flex gap-2 mt-auto pt-2 w-full">
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          setEditingReward(reward);
+                          setShowRewardFormModal(true);
+                        }}
+                        className="flex-1 text-sm py-2"
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="danger"
+                        onClick={() => {
+                          setRewardToDelete(reward);
+                          setShowRewardDeleteModal(true);
+                        }}
+                        className="flex-1 text-sm py-2"
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </Card>
@@ -382,6 +491,9 @@ export default function TeacherDashboard() {
             {students.map((student) => {
               const studentMissions = missions.filter((m) => m.assignedStudentId === student.id);
               const completedCount = studentMissions.filter((m) => m.status === "COMPLETED").length;
+              const purchasedRewardItems = rewards.filter((r) =>
+                student.purchasedRewards.includes(r.id)
+              );
               return (
                 <Card key={student.id} borderColor="border-gray-300" className="p-6 hover:shadow-lg transition-shadow">
                   <div className="text-center mb-4">
@@ -415,12 +527,28 @@ export default function TeacherDashboard() {
                       />
                     </div>
                     <div className="pt-3 border-t-2 border-gray-200">
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-gray-600 mb-2">
                         <span className="font-bold">Missions:</span> {completedCount} completed
                       </div>
-                      <div className="text-sm text-gray-600">
-                        <span className="font-bold">Rewards:</span>{" "}
-                        {student.purchasedRewards.length} purchased
+                      <div>
+                        <div className="text-sm font-bold text-gray-700 mb-1">
+                          Purchases ({student.purchasedRewards.length}):
+                        </div>
+                        {purchasedRewardItems.length === 0 ? (
+                          <p className="text-xs text-gray-500">None yet</p>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {purchasedRewardItems.map((reward) => (
+                              <span
+                                key={reward.id}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-xs font-bold text-gray-800"
+                              >
+                                <span>{reward.icon}</span>
+                                <span>{reward.title}</span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -451,6 +579,28 @@ export default function TeacherDashboard() {
         message="This mission will be removed permanently. Students will no longer see it."
         onConfirm={handleDeleteConfirm}
         confirmLabel="Remove Mission"
+      />
+
+      <RewardFormModal
+        isOpen={showRewardFormModal}
+        onClose={() => {
+          setShowRewardFormModal(false);
+          setEditingReward(null);
+        }}
+        reward={editingReward}
+        onSubmit={handleRewardFormSubmit}
+      />
+
+      <ConfirmDeleteModal
+        isOpen={showRewardDeleteModal}
+        onClose={() => {
+          setShowRewardDeleteModal(false);
+          setRewardToDelete(null);
+        }}
+        title="Remove this reward?"
+        message="This reward will be removed from the shop. Students who already bought it will keep it."
+        onConfirm={handleRewardDeleteConfirm}
+        confirmLabel="Remove Reward"
       />
 
       {missionToAssign && (

@@ -312,6 +312,53 @@ export function getRewards(): Reward[] {
   return rewards;
 }
 
+export function getReward(id: string): Reward | undefined {
+  return rewards.find((r) => r.id === id);
+}
+
+export type CreateRewardData = {
+  title: string;
+  description: string;
+  cost: number;
+  icon: string;
+  soldOut?: boolean;
+};
+
+export function createReward(data: CreateRewardData): Reward {
+  const id = `reward-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  const reward: Reward = {
+    id,
+    title: data.title,
+    description: data.description,
+    cost: data.cost,
+    icon: data.icon,
+    soldOut: data.soldOut ?? false,
+  };
+  rewards.push(reward);
+  return reward;
+}
+
+export function updateReward(id: string, data: Partial<Reward>): Reward | null {
+  const index = rewards.findIndex((r) => r.id === id);
+  if (index === -1) return null;
+  rewards[index] = { ...rewards[index], ...data };
+  return rewards[index];
+}
+
+export function deleteReward(rewardId: string): boolean {
+  const index = rewards.findIndex((r) => r.id === rewardId);
+  if (index === -1) return false;
+  // Remove from all students' purchasedRewards
+  students.forEach((student) => {
+    if (student.purchasedRewards.includes(rewardId)) {
+      const updated = student.purchasedRewards.filter((id) => id !== rewardId);
+      updateStudent(student.id, { purchasedRewards: updated });
+    }
+  });
+  rewards.splice(index, 1);
+  return true;
+}
+
 export function purchaseReward(studentId: string, rewardId: string): { student: Student; reward: Reward } | null {
   const student = getStudent(studentId);
   const reward = rewards.find((r) => r.id === rewardId);

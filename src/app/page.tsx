@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
-import { TeacherPINModal } from "@/components/TeacherPINModal";
 import { getStudents } from "@/lib/store";
 
 function scrollToChoosePlayer() {
@@ -17,7 +15,7 @@ const FEATURES = [
     title: "Mission Cards",
     description: "Complete fun tasks, earn rewards, and collect mission cards like a real board game.",
     icon: "🃏",
-    bandColor: "bg-red-400",
+    bandColor: "bg-red-600",
   },
   {
     title: "Spend & Grow Tokens",
@@ -29,19 +27,18 @@ const FEATURES = [
     title: "Teacher-Assigned Missions",
     description: "Your teacher picks missions for you. Complete them and get approved to earn tokens!",
     icon: "👩‍🏫",
-    bandColor: "bg-sky-400",
+    bandColor: "bg-blue-800",
   },
   {
     title: "AI-Powered Insights",
     description: "Get friendly tips and explanations about saving, spending, and how money grows.",
     icon: "✨",
-    bandColor: "bg-purple-500",
+    bandColor: "bg-purple-600",
   },
 ];
 
 export default function HomePage() {
   const students = getStudents();
-  const [showPINModal, setShowPINModal] = useState(false);
 
   return (
     <div className="min-h-screen landing-board">
@@ -208,23 +205,18 @@ export default function HomePage() {
             <span>Classroomopoly</span>
           </div>
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowPINModal(true)}
-              className="text-sm font-display font-bold text-gray-500 hover:text-gray-800 underline underline-offset-2 transition-colors"
+            <Link
+              href="/teacher/login"
+              className="px-3 py-2 -m-2 text-sm font-display font-bold text-gray-600 hover:text-gray-900 underline underline-offset-2 transition-colors rounded-lg hover:bg-gray-100/80"
             >
-              Teacher / Parent Login
-            </button>
+              Teacher Login
+            </Link>
           </div>
         </div>
         <p className="text-center text-gray-500 text-sm mt-4 max-w-6xl mx-auto">
           A fun financial learning game for kids. Complete missions, earn tokens, and learn how money grows!
         </p>
       </footer>
-
-      <TeacherPINModal
-        isOpen={showPINModal}
-        onClose={() => setShowPINModal(false)}
-      />
     </div>
   );
 }

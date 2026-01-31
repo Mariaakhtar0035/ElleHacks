@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import type { AskNarratorContext } from "@/lib/gemini";
 
 const MAX_QUESTION_LENGTH = 200;
 
@@ -10,12 +11,15 @@ interface AskNarratorModalProps {
   isOpen: boolean;
   onClose: () => void;
   studentName: string;
+  /** Student context for context-aware answers (tokens, missions, purchases) */
+  context?: AskNarratorContext | null;
 }
 
 export function AskNarratorModal({
   isOpen,
   onClose,
   studentName,
+  context,
 }: AskNarratorModalProps) {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<string | null>(null);
@@ -35,7 +39,7 @@ export function AskNarratorModal({
       const response = await fetch("/api/gemini/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentName, question: trimmed }),
+        body: JSON.stringify({ studentName, question: trimmed, context: context ?? undefined }),
       });
 
       if (!response.ok) {
@@ -64,7 +68,7 @@ export function AskNarratorModal({
     <Modal isOpen={isOpen} onClose={handleClose} title="Ask the Narrator">
       <div className="space-y-4">
         <p className="text-gray-700 font-medium">
-          Ask anything about tokens, missions, or saving! The narrator will answer in kid-friendly words.
+          Ask about money, saving, spending, earning, or investing! The narrator will give you options and ideas, not tell you exactly what to do — you stay in charge.
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

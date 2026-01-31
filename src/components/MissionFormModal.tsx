@@ -6,25 +6,25 @@ import { Button } from "@/components/ui/Button";
 import { Mission, MissionBandColor, MISSION_BAND_COLORS } from "@/types";
 
 const BAND_LABELS: Record<MissionBandColor, string> = {
-  red: "Red",
-  green: "Green",
-  blue: "Blue",
-  amber: "Amber",
-  orange: "Orange",
+  green: "Green Set",
+  darkBlue: "Dark Blue Set",
+  lightBlue: "Light Blue Set",
+  red: "Red Set",
+  yellow: "Yellow Set",
+  orange: "Orange Set",
+  brown: "Brown Set",
   purple: "Purple",
-  sky: "Light Blue",
-  brown: "Brown",
 };
 
 const BAND_PREVIEW: Record<MissionBandColor, string> = {
-  red: "bg-red-400",
-  green: "bg-green-500",
-  blue: "bg-blue-500",
-  amber: "bg-amber-400",
-  orange: "bg-orange-400",
-  purple: "bg-purple-500",
-  sky: "bg-sky-400",
-  brown: "bg-amber-700",
+  green: "bg-green-600",
+  darkBlue: "bg-blue-800",
+  lightBlue: "bg-sky-400",
+  red: "bg-red-600",
+  yellow: "bg-amber-400",
+  orange: "bg-orange-500",
+  brown: "bg-amber-800",
+  purple: "bg-purple-600",
 };
 
 interface MissionFormModalProps {

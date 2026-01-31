@@ -9,10 +9,10 @@ export interface Student {
   purchasedRewards: string[]; // reward IDs
 }
 
-/** Top band color for mission card (board-game palette) */
-export type MissionBandColor = "red" | "green" | "blue" | "amber" | "orange" | "purple" | "sky" | "brown";
+/** Top band color for mission card (board-game sets) */
+export type MissionBandColor = "green" | "darkBlue" | "lightBlue" | "red" | "yellow" | "orange" | "brown" | "purple";
 
-export const MISSION_BAND_COLORS: MissionBandColor[] = ["red", "green", "blue", "amber", "orange", "purple", "sky", "brown"];
+export const MISSION_BAND_COLORS: MissionBandColor[] = ["green", "darkBlue", "lightBlue", "red", "yellow", "orange", "brown", "purple"];
 
 export interface Mission {
   id: string;

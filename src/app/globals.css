@@ -2,7 +2,7 @@
 
 body {
   font-family: var(--font-nunito), sans-serif;
-  background: linear-gradient(160deg, #fefce8 0%, #fef9c3 40%, #fef3c7 100%);
+  background: #d2e5d2;
   background-attachment: fixed;
   color: #1f2937;
 }
@@ -130,16 +130,16 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #faf8f5;
 }
 
-/* Landing page: soft warm background */
+/* Landing page: mint green background */
 .landing-board {
-  background: linear-gradient(160deg, #fffbeb 0%, #fef9c3 35%, #fef3c7 100%);
+  background: #d2e5d2;
   background-attachment: fixed;
 }
 .landing-board::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(253, 230, 138, 0.2) 0%, transparent 60%);
+  background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
   pointer-events: none;
   z-index: 0;
 }

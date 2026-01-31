@@ -5,27 +5,27 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Mission, MissionStatus } from "@/types";
 
-/** Board-game palette: lighter tones + sky and brown. Each mission gets a stable unique color. */
+/** Board-game sets: Green, Dark Blue, Light Blue, Red, Yellow, Orange, Brown, Purple */
 const BAND_COLORS = [
-  "red",
   "green",
-  "blue",
-  "amber",
+  "darkBlue",
+  "lightBlue",
+  "red",
+  "yellow",
   "orange",
-  "purple",
-  "sky",
   "brown",
+  "purple",
 ] as const;
 
 const BAND_CLASSES: Record<(typeof BAND_COLORS)[number], string> = {
-  red: "bg-red-400 text-white",
-  green: "bg-green-500 text-white",
-  blue: "bg-blue-500 text-white",
-  amber: "bg-amber-400 text-gray-900",
-  orange: "bg-orange-400 text-gray-900",
-  purple: "bg-purple-500 text-white",
-  sky: "bg-sky-400 text-gray-900",
-  brown: "bg-amber-700 text-white",
+  green: "bg-green-600 text-white",
+  darkBlue: "bg-blue-800 text-white",
+  lightBlue: "bg-sky-400 text-gray-900",
+  red: "bg-red-600 text-white",
+  yellow: "bg-amber-400 text-gray-900",
+  orange: "bg-orange-500 text-white",
+  brown: "bg-amber-800 text-white",
+  purple: "bg-purple-600 text-white",
 };
 
 function getBandColorIndex(missionId: string): number {
@@ -69,8 +69,9 @@ export function MissionCard({
   const isPopular = mission.requestCount > 2;
   const isHighDemand = mission.requestCount > 1 && mission.requestCount <= 2;
 
-  const bandColorKey = mission.bandColor ?? BAND_COLORS[getBandColorIndex(mission.id)];
-  const bandClasses = BAND_CLASSES[bandColorKey];
+  const rawKey = mission.bandColor ?? BAND_COLORS[getBandColorIndex(mission.id)];
+  const bandColorKey = rawKey in BAND_CLASSES ? rawKey : BAND_COLORS[getBandColorIndex(mission.id)];
+  const bandClasses = BAND_CLASSES[bandColorKey as (typeof BAND_COLORS)[number]];
 
   const displayStatus = statusProp ?? mission.status;
   const showStatusBadge = !isMarketplace;
