@@ -1,0 +1,206 @@
+@import "tailwindcss";
+
+body {
+  font-family: var(--font-nunito), sans-serif;
+  background: linear-gradient(160deg, #fefce8 0%, #fef9c3 40%, #fef3c7 100%);
+  background-attachment: fixed;
+  color: #1f2937;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-fredoka), sans-serif;
+}
+
+/* Animations */
+@keyframes coin-flip {
+  0% {
+    transform: rotateY(0deg) scale(1);
+  }
+  50% {
+    transform: rotateY(180deg) scale(1.2);
+  }
+  100% {
+    transform: rotateY(360deg) scale(1);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+@keyframes sparkle {
+  0% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+@keyframes gentle-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+@keyframes chart-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.coin-animation {
+  animation: coin-flip 0.6s ease-in-out;
+}
+
+.bounce-in {
+  animation: bounce-in 0.5s ease-out;
+}
+
+.float-up {
+  animation: float-up 1s forwards;
+}
+
+.shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.gentle-pulse {
+  animation: gentle-pulse 2s ease-in-out infinite;
+}
+
+.chart-fill {
+  transform-origin: left;
+  animation: chart-fill 0.8s ease-out forwards;
+}
+
+/* Micro-interactions */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+.press-down:active {
+  transform: translateY(2px);
+}
+
+/* Game card hover tilt - respect reduced motion */
+.card-hover-tilt {
+  transition: transform 0.2s ease, box-shadow 0.25s ease;
+}
+.card-hover-tilt:hover {
+  transform: translateY(-3px) rotate(0.5deg);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.12), 0 4px 8px -4px rgba(0, 0, 0, 0.06);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-hover-tilt:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Off-white / cream card body (optional: add subtle texture via background-image) */
+.card-paper {
+  background-color: #faf8f5;
+}
+
+/* Landing page: soft warm background */
+.landing-board {
+  background: linear-gradient(160deg, #fffbeb 0%, #fef9c3 35%, #fef3c7 100%);
+  background-attachment: fixed;
+}
+.landing-board::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(253, 230, 138, 0.2) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+.landing-board > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Dice bounce for landing */
+@keyframes dice-bounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-8px) rotate(5deg); }
+  75% { transform: translateY(-4px) rotate(-3deg); }
+}
+
+/* Token spin on hover */
+@keyframes token-spin {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
+}
+
+.dice-bounce {
+  animation: dice-bounce 2s ease-in-out infinite;
+}
+
+.token-spin-hover:hover {
+  animation: token-spin 0.6s ease-in-out;
+}
+
+/* Landing card lift + tilt */
+.landing-card-hover {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.landing-card-hover:hover {
+  transform: translateY(-4px) rotate(0.5deg);
+  box-shadow: 0 16px 32px -12px rgba(0, 0, 0, 0.12), 0 8px 16px -8px rgba(0, 0, 0, 0.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dice-bounce {
+    animation: none;
+  }
+  .token-spin-hover:hover {
+    animation: none;
+  }
+  .landing-card-hover:hover {
+    transform: translateY(-4px);
+  }
+}
+
+/* Utility classes for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .coin-animation,
+  .bounce-in,
+  .float-up,
+  .shake,
+  .gentle-pulse,
+  .chart-fill {
+    animation: none;
+  }
+  .hover-lift:hover {
+    transform: none;
+  }
+}
