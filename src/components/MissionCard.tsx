@@ -3,9 +3,10 @@
 import React from "react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { getStudent } from "@/lib/store";
 import { Mission, MissionStatus } from "@/types";
 
-/** Board-game sets: Green, Dark Blue, Light Blue, Red, Yellow, Orange, Brown, Purple */
+/** Muted pastel header colors (soft blue/green/yellow tones) */
 const BAND_COLORS = [
   "green",
   "darkBlue",
@@ -18,14 +19,14 @@ const BAND_COLORS = [
 ] as const;
 
 const BAND_CLASSES: Record<(typeof BAND_COLORS)[number], string> = {
-  green: "bg-green-600 text-white",
-  darkBlue: "bg-blue-800 text-white",
-  lightBlue: "bg-sky-400 text-gray-900",
-  red: "bg-red-600 text-white",
-  yellow: "bg-amber-400 text-gray-900",
-  orange: "bg-orange-500 text-white",
-  brown: "bg-amber-800 text-white",
-  purple: "bg-purple-600 text-white",
+  green: "bg-green-100 text-black",
+  darkBlue: "bg-blue-100 text-black",
+  lightBlue: "bg-sky-100 text-black",
+  red: "bg-red-100 text-black",
+  yellow: "bg-amber-100 text-black",
+  orange: "bg-orange-100 text-black",
+  brown: "bg-amber-200 text-black",
+  purple: "bg-purple-100 text-black",
 };
 
 function getBandColorIndex(missionId: string): number {
@@ -50,6 +51,8 @@ interface MissionCardProps {
   actionHint?: string;
   /** When variant is myMission and status is COMPLETED, optional callback to explain reward split */
   onExplainRewardSplit?: (mission: Mission) => void;
+  /** Optional: pass assigned student name (e.g. from teacher view). If omitted, resolves from store when possible. */
+  assignedStudentName?: string;
 }
 
 export function MissionCard({
@@ -63,6 +66,7 @@ export function MissionCard({
   actionDisabled = false,
   actionHint,
   onExplainRewardSplit,
+  assignedStudentName: assignedStudentNameProp,
 }: MissionCardProps) {
   const isMarketplace = variant === "marketplace";
   const alreadyRequested = isMarketplace && studentId ? mission.requestedBy.includes(studentId) : false;
@@ -76,6 +80,13 @@ export function MissionCard({
   const displayStatus = statusProp ?? mission.status;
   const showStatusBadge = !isMarketplace;
 
+  const assignedStudentName =
+    assignedStudentNameProp ??
+    (mission.assignedStudentId ? getStudent(mission.assignedStudentId)?.name : undefined);
+  const requestedByNames = mission.requestedBy
+    .map((id) => getStudent(id)?.name)
+    .filter((n): n is string => !!n);
+
   const defaultActionLabel = isMarketplace
     ? alreadyRequested
       ? "✓ Already Requested"
@@ -83,78 +94,104 @@ export function MissionCard({
     : actionLabel;
 
   return (
-    <div
-      className={`
-        flex flex-col rounded-2xl border-2 border-gray-200 overflow-hidden
-        shadow-lg transition-all duration-200
-        card-hover-tilt
-        min-h-[320px] aspect-3/4 w-full
-      `}
-    >
-      {/* Top color band - ~25% height, unique color per mission, rounded top only, title centered */}
-      <div
-        className={`min-h-[25%] shrink-0 px-4 py-4 flex items-center justify-between gap-2 rounded-t-2xl ${bandClasses}`}
-      >
-        <div className="flex-1 flex justify-center min-w-0">
-          <span className="font-display font-bold text-lg uppercase tracking-wider leading-tight text-center text-white">
+    <div className="flex flex-col min-h-[320px] w-full border-2 border-black bg-white">
+      {/* Inner double-border panel */}
+      <div className="flex flex-col flex-1 min-h-0 m-1 border border-black bg-white">
+        {/* Header - muted pastel, thick black bottom border, two centered rows */}
+        <div
+          className={`shrink-0 px-4 py-3 border-b-2 border-black ${bandClasses}`}
+        >
+          <div className="text-center text-xs font-bold uppercase tracking-wider">
+            Mission
+          </div>
+          <div className="text-center font-bold uppercase text-base tracking-wide mt-0.5 leading-tight">
             {mission.title}
-          </span>
-        </div>
-        <div className="flex flex-wrap gap-1.5 justify-end shrink-0">
-          {isMarketplace && isPopular && <Badge type="popular" />}
-          {isMarketplace && isHighDemand && !isPopular && <Badge type="high_demand" />}
-          {isMarketplace && isPopular && (
-            <span className="text-xs px-2 py-0.5 bg-white/20 rounded-lg font-bold text-white">
-              {mission.requestCount} want
-            </span>
+          </div>
+          {(isMarketplace && (isPopular || isHighDemand)) && (
+            <div className="flex justify-center gap-2 mt-2">
+              {isPopular && (
+                <span className="text-xs font-bold uppercase px-2 py-0.5 border border-black bg-white">
+                  Popular
+                </span>
+              )}
+              {isHighDemand && !isPopular && (
+                <span className="text-xs font-bold uppercase px-2 py-0.5 border border-black bg-white">
+                  High Demand
+                </span>
+              )}
+              {isPopular && (
+                <span className="text-xs font-bold uppercase">
+                  {mission.requestCount} want
+                </span>
+              )}
+            </div>
           )}
         </div>
-      </div>
 
-      {/* Card body - cream, paper feel */}
-      <div className="card-paper flex-1 flex flex-col min-h-0 p-5 border-t-2 border-gray-200">
-        {/* 1. Description */}
-        <p className="text-gray-700 leading-relaxed text-sm shrink-0 pb-3 border-b border-gray-200">
-          {mission.description}
-        </p>
+        {/* Body - vertical list, left label right value */}
+        <div className="flex-1 flex flex-col min-h-0 p-4 border-b border-black">
+          <div className="flex justify-between items-start gap-4 text-sm mb-2">
+            <span className="uppercase font-bold shrink-0">Description</span>
+            <span className="text-right font-normal">{mission.description}</span>
+          </div>
 
-        {/* 2. Reward block - large number, icon, TOKEN REWARD */}
-        <div className="py-4 border-b border-gray-200">
-          <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl py-3 px-4 flex flex-col items-center justify-center">
-            <div className="flex items-center justify-center gap-2">
-              <span className="font-display font-extrabold text-3xl text-amber-900">
-                {mission.currentReward}
-              </span>
-              <span className="text-2xl" aria-hidden="true">
-                🪙
+          {(assignedStudentName || mission.requestCount > 0) && (
+            <div className="flex justify-between items-center gap-4 text-xs py-2 border-t border-black">
+              <span className="uppercase font-bold shrink-0">Claimed by</span>
+              <span className="text-right font-normal">
+                {assignedStudentName ? (
+                  variant === "myMission" && mission.assignedStudentId === studentId
+                    ? "You"
+                    : assignedStudentName
+                ) : (
+                  <>
+                    {mission.requestCount}{" "}
+                    {mission.requestCount === 1 ? "student" : "students"} requested
+                    {requestedByNames.length > 0 &&
+                      ` (${requestedByNames.slice(0, 3).join(", ")}${requestedByNames.length > 3 ? ` +${requestedByNames.length - 3}` : ""})`}
+                  </>
+                )}
               </span>
             </div>
-            <span className="font-display font-bold text-xs uppercase tracking-wide text-amber-800 mt-1">
-              Token Reward
-            </span>
-            {mission.currentReward < mission.baseReward && (
-              <p className="text-xs text-gray-500 mt-0.5">
-                Base: {mission.baseReward}
-              </p>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* 3. Status badge */}
-        {showStatusBadge && (
-          <div className="py-3 border-b border-gray-200 flex justify-center">
-            <Badge status={displayStatus} />
+        {/* Center emphasis - large bold reward */}
+        <div className="py-6 px-4 text-center border-b-2 border-black bg-white">
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-4xl font-black text-black" aria-hidden="true">
+              {mission.currentReward}
+            </span>
+            <span className="text-2xl" aria-hidden="true">
+              🪙
+            </span>
           </div>
-        )}
+          <div className="text-xs font-bold uppercase tracking-wider mt-1">
+            Token Reward
+          </div>
+          {mission.currentReward < mission.baseReward && (
+            <div className="text-xs font-medium mt-1">
+              Base: {mission.baseReward}
+            </div>
+          )}
+        </div>
 
-        {/* 4. Action button */}
-        <div className="pt-4 mt-auto flex flex-col gap-2">
+        {/* Footer - status, button, hint */}
+        <div className="p-4 text-center border-t border-black">
+          {showStatusBadge && (
+            <div className="mb-3 flex justify-center">
+              <Badge
+                status={displayStatus}
+                className="rounded-none shadow-none border-black"
+              />
+            </div>
+          )}
           {isMarketplace && (
             <Button
               variant={alreadyRequested ? "secondary" : "primary"}
               onClick={() => onRequest?.(mission.id)}
               disabled={alreadyRequested}
-              className="w-full"
+              className="w-full rounded-none shadow-none border-2 border-black"
             >
               {defaultActionLabel}
             </Button>
@@ -164,19 +201,19 @@ export function MissionCard({
               variant={displayStatus === "COMPLETED" ? "secondary" : "primary"}
               onClick={onAction}
               disabled={actionDisabled}
-              className="w-full"
+              className="w-full rounded-none shadow-none border-2 border-black"
             >
               {defaultActionLabel}
             </Button>
           )}
           {!isMarketplace && actionHint && (
-            <p className="text-xs text-gray-600 text-center">{actionHint}</p>
+            <p className="text-xs font-medium uppercase mt-2">{actionHint}</p>
           )}
           {!isMarketplace && displayStatus === "COMPLETED" && onExplainRewardSplit && (
             <button
               type="button"
               onClick={() => onExplainRewardSplit(mission)}
-              className="text-xs font-display font-bold text-blue-600 hover:text-blue-800 underline underline-offset-1 mt-1"
+              className="text-xs font-bold uppercase mt-2 underline"
             >
               Why did I get this split?
             </button>

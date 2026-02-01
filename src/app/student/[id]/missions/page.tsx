@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { MissionCard } from "@/components/MissionCard";
+import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { Modal } from "@/components/ui/Modal";
-import { getStudentMissions, getStudent } from "@/lib/store";
+import { getStudentMissions, getStudent, getRecommendedSplit, getPendingRewardsForStudent } from "@/lib/store";
 import { Mission } from "@/types";
 
 const SPEND_VS_GROW_FALLBACK =
@@ -35,14 +36,14 @@ export default function MyMissionsPage() {
   const [loadingSplitExplanation, setLoadingSplitExplanation] = useState(false);
 
   const student = getStudent(studentId);
+  const pendingRewards = getPendingRewardsForStudent(studentId);
 
   const handleExplainRewardSplit = (mission: Mission) => {
     setSplitModalMission(mission);
     setSplitExplanation(null);
     setLoadingSplitExplanation(true);
     const reward = mission.currentReward;
-    const spendAmount = Math.floor(reward * 0.7);
-    const growAmount = Math.floor(reward * 0.3);
+    const { spend: spendAmount, grow: growAmount } = getRecommendedSplit(reward);
     fetch("/api/gemini/explain", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -60,6 +61,16 @@ export default function MyMissionsPage() {
 
   return (
     <div className="space-y-8">
+      {pendingRewards.length > 0 && (
+        <Card borderColor="border-amber-500" className="p-4 bg-amber-50">
+          <p className="text-gray-700">
+            You have {pendingRewards.length} reward{pendingRewards.length > 1 ? "s" : ""} to claim!
+          </p>
+          <Link href={`/student/${studentId}`} className="text-emerald-600 font-bold hover:underline mt-2 inline-block">
+            Go to Dashboard to claim →
+          </Link>
+        </Card>
+      )}
       <div className="text-center">
         <h1 className="font-display font-bold text-4xl text-gray-900 mb-2">
           📋 My Missions
@@ -87,6 +98,7 @@ export default function MyMissionsPage() {
               key={mission.id}
               mission={mission}
               variant="myMission"
+              studentId={studentId}
               actionHint={getActionHint(mission.status)}
               onExplainRewardSplit={handleExplainRewardSplit}
             />

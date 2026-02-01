@@ -1,19 +1,35 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/EmptyState";
-import { getStudent, getStudentMissions, getRewards } from "@/lib/store";
+import { ClaimRewardModal } from "@/components/ClaimRewardModal";
+import { getStudent, getStudentMissions, getRewards, getPendingRewardsForStudent, claimPendingReward } from "@/lib/store";
 import { TokenChip } from "@/components/ui/TokenChip";
+import { Badge } from "@/components/ui/Badge";
+import type { PendingReward } from "@/types";
 
 export default function StudentDashboard() {
   const params = useParams();
   const studentId = params.id as string;
+  const [claimingPending, setClaimingPending] = useState<PendingReward | null>(null);
+  const [, setRefresh] = useState(0);
+  const refresh = () => setRefresh((r) => r + 1);
+
   const student = getStudent(studentId);
   const missions = getStudentMissions(studentId);
+  const pendingRewards = getPendingRewardsForStudent(studentId);
+
+  const handleClaim = (spendAmount: number, growAmount: number) => {
+    if (!claimingPending) return;
+    claimPendingReward(claimingPending.id, spendAmount, growAmount);
+    setClaimingPending(null);
+    refresh();
+  };
 
   if (!student) return null;
 
@@ -26,6 +42,42 @@ export default function StudentDashboard() {
 
   return (
     <div className="space-y-8">
+      {/* Pending claim banner */}
+      {pendingRewards.length > 0 && (
+        <Card borderColor="border-amber-500" className="p-6 bg-amber-50">
+          <h2 className="font-display font-bold text-2xl text-gray-900 mb-4">
+            🎉 You have tokens to claim!
+          </h2>
+          <p className="text-gray-700 mb-4">
+            Your teacher approved {pendingRewards.length} mission{pendingRewards.length > 1 ? "s" : ""}. Choose how to split your tokens between Spend (use now) and Grow (save for later).
+          </p>
+          <div className="space-y-3">
+            {pendingRewards.map((pending) => (
+              <div
+                key={pending.id}
+                className="flex items-center justify-between p-4 rounded-xl bg-white border-2 border-amber-200"
+              >
+                <div>
+                  <h3 className="font-display font-bold text-gray-900">{pending.missionTitle}</h3>
+                  <p className="text-sm text-gray-600">{pending.totalAmount} tokens to claim</p>
+                </div>
+                <Button variant="success" onClick={() => setClaimingPending(pending)}>
+                  Claim tokens!
+                </Button>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {claimingPending && (
+        <ClaimRewardModal
+          pendingReward={claimingPending}
+          onClaim={handleClaim}
+          onClose={() => setClaimingPending(null)}
+        />
+      )}
+
       {/* Game board tiles - token balances */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card borderColor="border-amber-500" className="p-6">
@@ -158,7 +210,9 @@ export default function StudentDashboard() {
                   <h3 className="font-display font-bold text-gray-900">
                     {mission.title}
                   </h3>
-                  <p className="text-sm text-gray-600">{mission.status}</p>
+                  <div className="mt-1">
+                    <Badge status={mission.status} />
+                  </div>
                 </div>
                 <TokenChip amount={mission.currentReward} type="spend" size="md" />
               </div>

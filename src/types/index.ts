@@ -1,5 +1,12 @@
 export type MissionStatus = "AVAILABLE" | "REQUESTED" | "IN_PROGRESS" | "COMPLETED";
 
+/** Weekly balance snapshot for Spend vs Grow chart history */
+export interface BalanceHistoryEntry {
+  week: number;
+  spendBalance: number;
+  growBalance: number;
+}
+
 export interface Student {
   id: string;
   name: string;
@@ -7,6 +14,8 @@ export interface Student {
   growTokens: number;
   assignedMissions: string[]; // mission IDs
   purchasedRewards: string[]; // reward IDs
+  /** Optional; if missing, generated from current balances */
+  balanceHistory?: BalanceHistoryEntry[];
 }
 
 /** Top band color for mission card (board-game sets) */
@@ -40,6 +49,14 @@ export interface Reward {
 export interface TokenBalance {
   spend: number;
   grow: number;
+}
+
+export interface PendingReward {
+  id: string;
+  missionId: string;
+  studentId: string;
+  missionTitle: string;
+  totalAmount: number;
 }
 
 export type ExplanationType = "SUPPLY_DEMAND" | "SPEND_VS_GROW" | "COMPOUND_GROWTH" | "MISSION_APPROVAL" | "NARRATOR";

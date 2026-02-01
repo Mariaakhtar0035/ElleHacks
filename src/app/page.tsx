@@ -4,36 +4,45 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
+import { StudentAvatar } from "@/components/StudentAvatar";
 import { getStudents } from "@/lib/store";
 
 function scrollToChoosePlayer() {
   document.getElementById("choose-player")?.scrollIntoView({ behavior: "smooth" });
 }
 
+/** green, dark blue, light blue, red, yellow, orange, brown, purple */
+const FEATURE_COLORS = [
+  "bg-green-100 text-black",
+  "bg-blue-800 text-white",
+  "bg-sky-200 text-black",
+  "bg-red-100 text-black",
+  "bg-amber-100 text-black",
+  "bg-orange-100 text-black",
+  "bg-amber-200 text-black",
+  "bg-purple-100 text-black",
+] as const;
+
 const FEATURES = [
   {
     title: "Mission Cards",
     description: "Complete fun tasks, earn rewards, and collect mission cards like a real board game.",
     icon: "🃏",
-    bandColor: "bg-red-600",
   },
   {
     title: "Spend & Grow Tokens",
     description: "Earn Spend tokens for rewards and Grow tokens that multiply over time.",
     icon: "🪙",
-    bandColor: "bg-amber-400",
   },
   {
     title: "Teacher-Assigned Missions",
     description: "Your teacher picks missions for you. Complete them and get approved to earn tokens!",
     icon: "👩‍🏫",
-    bandColor: "bg-blue-800",
   },
   {
     title: "AI-Powered Insights",
     description: "Get friendly tips and explanations about saving, spending, and how money grows.",
     icon: "✨",
-    bandColor: "bg-purple-600",
   },
 ];
 
@@ -77,7 +86,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ========== FEATURES (Property-card style) ========== */}
+      {/* ========== FEATURES (Flat print-style cards) ========== */}
       <section className="px-4 py-16 md:py-24">
         <div className="max-w-6xl mx-auto">
           <h2 className="font-display font-bold text-3xl md:text-4xl text-gray-900 text-center mb-4">
@@ -87,23 +96,34 @@ export default function HomePage() {
             Play the game. Earn tokens. Learn how money works.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {FEATURES.map((feature) => (
+            {FEATURES.map((feature, index) => (
               <div
                 key={feature.title}
-                className="landing-card-hover flex flex-col rounded-2xl border-2 border-gray-200 overflow-hidden bg-white shadow-lg min-h-[220px]"
+                className="flex flex-col min-h-[220px] w-full border-2 border-black bg-white"
               >
-                <div
-                  className={`min-h-[28%] shrink-0 px-4 py-3.5 flex items-center justify-center rounded-t-2xl ${feature.bandColor} text-white`}
-                >
-                  <span className="font-display font-bold text-sm uppercase tracking-wider text-center">
-                    {feature.title}
-                  </span>
-                </div>
-                <div className="p-5 flex-1 flex flex-col items-center text-center">
-                  <span className="text-4xl mb-3" aria-hidden>
-                    {feature.icon}
-                  </span>
-                  <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
+                {/* Inner double-border panel */}
+                <div className="flex flex-col flex-1 min-h-0 m-1 border border-black bg-white">
+                  {/* Header - muted pastel, thick black bottom border */}
+                  <div
+                    className={`shrink-0 px-4 py-3 border-b-2 border-black ${FEATURE_COLORS[index % FEATURE_COLORS.length]}`}
+                  >
+                    <div className="text-center font-bold uppercase text-sm tracking-wide leading-tight">
+                      {feature.title}
+                    </div>
+                  </div>
+                  {/* Body */}
+                  <div className="flex-1 flex flex-col min-h-0 p-4 border-b border-black">
+                    <div className="flex justify-between items-start gap-4 text-sm">
+                      <span className="uppercase font-bold shrink-0">About</span>
+                      <span className="text-right font-normal">{feature.description}</span>
+                    </div>
+                  </div>
+                  {/* Center emphasis - icon */}
+                  <div className="py-6 px-4 text-center border-b-2 border-black bg-white">
+                    <span className="text-4xl" aria-hidden>
+                      {feature.icon}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -166,10 +186,12 @@ export default function HomePage() {
                   borderColor="border-blue-200"
                   className="p-8 text-center h-full"
                 >
-                  <div className="text-7xl mb-4">
-                    {student.id === "alex" && "👦"}
-                    {student.id === "jordan" && "👧"}
-                    {student.id === "sam" && "🧒"}
+                  <div className="flex justify-center mb-4">
+                    <StudentAvatar
+                      studentId={student.id}
+                      studentName={student.name}
+                      size="lg"
+                    />
                   </div>
                   <h3 className="font-display font-bold text-3xl text-gray-900 mb-6">
                     {student.name}

@@ -4,45 +4,23 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
-import { Button } from "@/components/ui/Button";
-import { getStudent } from "@/lib/store";
-import { getProjections, getGrowthPercentage } from "@/lib/growthCalculator";
-
-const COMPOUND_GROWTH_FALLBACK =
-  "Your Grow tokens earn 2% more every week. The longer you wait, the more you'll have!";
+import { TransferTokensCard } from "@/components/TransferTokensCard";
+import { getStudent, getBalanceHistory } from "@/lib/store";
+import { getProjections, getGrowthPercentage, computeWhatIfGrow } from "@/lib/growthCalculator";
+import { GrowthComparisonChart } from "@/components/GrowthComparisonChart";
 
 export default function GrowTokensPage() {
   const params = useParams();
   const studentId = params.id as string;
-  const student = getStudent(studentId);
-  const [aiExplanation, setAiExplanation] = useState<string | null>(null);
-  const [loadingExplanation, setLoadingExplanation] = useState(false);
+  const [, setRefresh] = useState(0);
+  const refresh = () => setRefresh((r) => r + 1);
 
+  const student = getStudent(studentId);
   if (!student) return null;
 
   const projections = getProjections(student.growTokens);
-
-  const fetchCompoundGrowthExplanation = () => {
-    setLoadingExplanation(true);
-    setAiExplanation(null);
-    fetch("/api/gemini/explain", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: "COMPOUND_GROWTH",
-        studentName: student.name,
-        context: {
-          currentGrow: student.growTokens,
-          futureAmount: projections.oneMonth,
-          timeframe: "1 month",
-        },
-      }),
-    })
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Failed"))))
-      .then((data) => setAiExplanation(data.explanation ?? COMPOUND_GROWTH_FALLBACK))
-      .catch(() => setAiExplanation(COMPOUND_GROWTH_FALLBACK))
-      .finally(() => setLoadingExplanation(false));
-  };
+  const history = getBalanceHistory(studentId);
+  const whatIfGrow = computeWhatIfGrow(history);
 
   return (
     <div className="space-y-8">
@@ -54,6 +32,14 @@ export default function GrowTokensPage() {
           If you wait... your tokens grow!
         </p>
       </div>
+
+      {/* Move Tokens - anytime transfer */}
+      <TransferTokensCard
+        studentId={studentId}
+        spendTokens={student.spendTokens}
+        growTokens={student.growTokens}
+        onTransfer={refresh}
+      />
 
       {/* Current Grow Tokens */}
       <Card borderColor="border-blue-500" className="p-8 text-center">
@@ -79,23 +65,11 @@ export default function GrowTokensPage() {
             <h3 className="font-display font-bold text-xl text-gray-900 mb-2">
               How Compound Growth Works
             </h3>
-            {aiExplanation ? (
-              <p className="text-gray-700 mb-4">{aiExplanation}</p>
-            ) : (
-              <p className="text-gray-700 mb-4">
-                Your Grow tokens earn 2% more every week. The longer you wait, the
-                more you&apos;ll have! This is called compound growth - your tokens
-                earn tokens, and those new tokens earn even more tokens!
-              </p>
-            )}
-            <Button
-              variant="secondary"
-              onClick={fetchCompoundGrowthExplanation}
-              disabled={loadingExplanation}
-              className="text-sm"
-            >
-              {loadingExplanation ? "Loading..." : "Tell me in my words"}
-            </Button>
+            <p className="text-gray-700">
+              Your Grow tokens earn 2% more every week. The longer you wait, the
+              more you&apos;ll have! This is called compound growth - your tokens
+              earn tokens, and those new tokens earn even more tokens!
+            </p>
           </div>
         </div>
       </Card>
@@ -174,6 +148,11 @@ export default function GrowTokensPage() {
         </div>
       </div>
 
+      {/* Your Money Story - Spend vs Grow chart with Time Machine toggle */}
+      <Card borderColor="border-gray-800" className="p-8 overflow-hidden">
+        <GrowthComparisonChart history={history} whatIfGrow={whatIfGrow} />
+      </Card>
+
       {/* Vault / Investment Board - Growth chart */}
       <Card borderColor="border-gray-800" className="p-8 overflow-hidden">
         <div className="border-4 border-amber-600 rounded-2xl p-6 bg-linear-to-b from-amber-50 to-amber-100">
@@ -193,7 +172,12 @@ export default function GrowTokensPage() {
               </div>
               <div
                 className="h-8 bg-blue-500 rounded-xl chart-fill"
-                style={{ width: "100%" }}
+                style={{
+                  width:
+                    student.growTokens > 0
+                      ? `${(student.growTokens / projections.oneYear) * 100}%`
+                      : "1%",
+                }}
               />
             </div>
             <div>

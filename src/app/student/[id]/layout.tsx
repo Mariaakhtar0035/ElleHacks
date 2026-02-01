@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
+import { StudentAvatar } from "@/components/StudentAvatar";
 import { NarratorBanner } from "@/components/NarratorBanner";
 import { MrsPennyworthPanel } from "@/components/MrsPennyworthPanel";
 import { MrsPennyworthAvatar } from "@/components/MrsPennyworthAvatar";
@@ -74,8 +75,6 @@ export default function StudentLayout({
   };
   const [showPennyworthPanel, setShowPennyworthPanel] = useState(false);
 
-  const avatarEmoji = student.id === "alex" ? "👦" : student.id === "jordan" ? "👧" : "🧒";
-
   return (
     <div className="min-h-screen">
       {/* Player nameplate header */}
@@ -87,9 +86,12 @@ export default function StudentLayout({
                 🏦
               </Link>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-linear-to-br from-amber-200 to-amber-400 border-2 border-amber-400/60 flex items-center justify-center text-2xl shadow-md">
-                  {avatarEmoji}
-                </div>
+                <StudentAvatar
+                  studentId={student.id}
+                  studentName={student.name}
+                  size="sm"
+                  className="w-12 h-12 text-xl"
+                />
                 <div>
                   <h1 className="font-display font-bold text-xl md:text-2xl text-gray-900">
                     {student.name}&apos;s Board

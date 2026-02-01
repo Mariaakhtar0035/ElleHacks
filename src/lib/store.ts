@@ -1,26 +1,78 @@
-import { Student, Mission, Reward, MissionStatus, MissionBandColor } from "@/types";
+import { Student, Mission, Reward, MissionStatus, MissionBandColor, BalanceHistoryEntry, PendingReward } from "@/types";
+import { generateHistoryFromCurrent } from "@/lib/growthCalculator";
+import { RECOMMENDED_SPEND_RATIO, RECOMMENDED_GROW_RATIO } from "@/lib/constants";
 
-// In-memory data store
+// In-memory data store - prepopulated with varied activity
 let students: Student[] = [
   {
     id: "alex",
     name: "Alex",
-    spendTokens: 100,
-    growTokens: 50,
-    assignedMissions: [],
-    purchasedRewards: [],
+    spendTokens: 165,
+    growTokens: 95,
+    assignedMissions: ["mission-1", "mission-5"],
+    purchasedRewards: ["reward-2"],
+    balanceHistory: [
+      { week: 1, spendBalance: 20, growBalance: 10 },
+      { week: 2, spendBalance: 55, growBalance: 22 },
+      { week: 3, spendBalance: 48, growBalance: 35 },
+      { week: 4, spendBalance: 72, growBalance: 48 },
+      { week: 5, spendBalance: 95, growBalance: 62 },
+      { week: 6, spendBalance: 78, growBalance: 72 },
+      { week: 7, spendBalance: 102, growBalance: 78 },
+      { week: 8, spendBalance: 125, growBalance: 82 },
+      { week: 9, spendBalance: 118, growBalance: 85 },
+      { week: 10, spendBalance: 142, growBalance: 88 },
+      { week: 11, spendBalance: 158, growBalance: 91 },
+      { week: 12, spendBalance: 165, growBalance: 95 },
+    ],
   },
   {
     id: "jordan",
     name: "Jordan",
-    spendTokens: 100,
-    growTokens: 50,
-    assignedMissions: [],
-    purchasedRewards: [],
+    spendTokens: 45,
+    growTokens: 82,
+    assignedMissions: ["mission-2"],
+    purchasedRewards: ["reward-1", "reward-2"],
+    balanceHistory: [
+      { week: 1, spendBalance: 30, growBalance: 15 },
+      { week: 2, spendBalance: 65, growBalance: 28 },
+      { week: 3, spendBalance: 52, growBalance: 38 },
+      { week: 4, spendBalance: 38, growBalance: 48 },
+      { week: 5, spendBalance: 55, growBalance: 55 },
+      { week: 6, spendBalance: 42, growBalance: 62 },
+      { week: 7, spendBalance: 48, growBalance: 68 },
+      { week: 8, spendBalance: 45, growBalance: 74 },
+      { week: 9, spendBalance: 50, growBalance: 78 },
+      { week: 10, spendBalance: 45, growBalance: 82 },
+    ],
   },
   {
     id: "sam",
     name: "Sam",
+    spendTokens: 230,
+    growTokens: 120,
+    assignedMissions: ["mission-3"],
+    purchasedRewards: ["reward-1", "reward-3"],
+  },
+  {
+    id: "riley",
+    name: "Riley",
+    spendTokens: 88,
+    growTokens: 65,
+    assignedMissions: ["mission-4"],
+    purchasedRewards: [],
+  },
+  {
+    id: "morgan",
+    name: "Morgan",
+    spendTokens: 142,
+    growTokens: 55,
+    assignedMissions: ["mission-6"],
+    purchasedRewards: ["reward-2", "reward-4"],
+  },
+  {
+    id: "casey",
+    name: "Casey",
     spendTokens: 100,
     growTokens: 50,
     assignedMissions: [],
@@ -37,7 +89,9 @@ let missions: Mission[] = [
     currentReward: 100,
     requestCount: 0,
     requestedBy: [],
-    status: "AVAILABLE",
+    status: "IN_PROGRESS",
+    assignedStudentId: "alex",
+    bandColor: "green",
   },
   {
     id: "mission-2",
@@ -47,7 +101,9 @@ let missions: Mission[] = [
     currentReward: 120,
     requestCount: 0,
     requestedBy: [],
-    status: "AVAILABLE",
+    status: "IN_PROGRESS",
+    assignedStudentId: "jordan",
+    bandColor: "darkBlue",
   },
   {
     id: "mission-3",
@@ -57,7 +113,9 @@ let missions: Mission[] = [
     currentReward: 80,
     requestCount: 0,
     requestedBy: [],
-    status: "AVAILABLE",
+    status: "IN_PROGRESS",
+    assignedStudentId: "sam",
+    bandColor: "lightBlue",
   },
   {
     id: "mission-4",
@@ -67,7 +125,9 @@ let missions: Mission[] = [
     currentReward: 150,
     requestCount: 0,
     requestedBy: [],
-    status: "AVAILABLE",
+    status: "IN_PROGRESS",
+    assignedStudentId: "riley",
+    bandColor: "red",
   },
   {
     id: "mission-5",
@@ -77,7 +137,9 @@ let missions: Mission[] = [
     currentReward: 90,
     requestCount: 0,
     requestedBy: [],
-    status: "AVAILABLE",
+    status: "IN_PROGRESS",
+    assignedStudentId: "alex",
+    bandColor: "yellow",
   },
   {
     id: "mission-6",
@@ -87,7 +149,9 @@ let missions: Mission[] = [
     currentReward: 110,
     requestCount: 0,
     requestedBy: [],
-    status: "AVAILABLE",
+    status: "IN_PROGRESS",
+    assignedStudentId: "morgan",
+    bandColor: "orange",
   },
   {
     id: "mission-7",
@@ -98,6 +162,7 @@ let missions: Mission[] = [
     requestCount: 0,
     requestedBy: [],
     status: "AVAILABLE",
+    bandColor: "brown",
   },
   {
     id: "mission-8",
@@ -108,6 +173,84 @@ let missions: Mission[] = [
     requestCount: 0,
     requestedBy: [],
     status: "AVAILABLE",
+    bandColor: "purple",
+  },
+  {
+    id: "mission-9",
+    title: "Recycle Program Leader",
+    description: "Collect and sort recyclables for one week",
+    baseReward: 95,
+    currentReward: 95,
+    requestCount: 0,
+    requestedBy: [],
+    status: "AVAILABLE",
+    bandColor: "green",
+  },
+  {
+    id: "mission-10",
+    title: "Morning Greeter",
+    description: "Welcome classmates at the door each morning",
+    baseReward: 75,
+    currentReward: 75,
+    requestCount: 0,
+    requestedBy: [],
+    status: "AVAILABLE",
+    bandColor: "lightBlue",
+  },
+  {
+    id: "mission-11",
+    title: "Art Supply Organizer",
+    description: "Tidy and label art supplies in the classroom",
+    baseReward: 85,
+    currentReward: 85,
+    requestCount: 0,
+    requestedBy: [],
+    status: "AVAILABLE",
+    bandColor: "red",
+  },
+  {
+    id: "mission-12",
+    title: "Weather Reporter",
+    description: "Update the classroom weather chart each day",
+    baseReward: 70,
+    currentReward: 70,
+    requestCount: 0,
+    requestedBy: [],
+    status: "AVAILABLE",
+    bandColor: "yellow",
+  },
+  {
+    id: "mission-13",
+    title: "Class Photographer",
+    description: "Take photos at the next class event",
+    baseReward: 125,
+    currentReward: 125,
+    requestCount: 0,
+    requestedBy: [],
+    status: "AVAILABLE",
+    bandColor: "purple",
+  },
+  {
+    id: "mission-14",
+    title: "Snack Helper",
+    description: "Help pass out snacks and clean up after",
+    baseReward: 65,
+    currentReward: 65,
+    requestCount: 0,
+    requestedBy: [],
+    status: "AVAILABLE",
+    bandColor: "orange",
+  },
+  {
+    id: "mission-15",
+    title: "Math Game Host",
+    description: "Lead a math review game for the class",
+    baseReward: 160,
+    currentReward: 160,
+    requestCount: 0,
+    requestedBy: [],
+    status: "AVAILABLE",
+    bandColor: "darkBlue",
   },
 ];
 
@@ -139,7 +282,50 @@ const rewards: Reward[] = [
     description: "A surprise reward chosen by your teacher!",
     cost: 100,
     icon: "🎁",
-    soldOut: Math.random() > 0.5, // Randomly sold out
+    soldOut: false,
+  },
+  {
+    id: "reward-5",
+    title: "Choose the Class Game",
+    description: "Pick the game for Friday fun time",
+    cost: 45,
+    icon: "🎮",
+  },
+  {
+    id: "reward-6",
+    title: "Sit by a Friend",
+    description: "Choose your seat for one day",
+    cost: 25,
+    icon: "🪑",
+  },
+  {
+    id: "reward-7",
+    title: "Lunch with the Teacher",
+    description: "Special lunch in the classroom",
+    cost: 120,
+    icon: "🍽️",
+    soldOut: true,
+  },
+  {
+    id: "reward-8",
+    title: "No Uniform Day Pass",
+    description: "Wear your favorite outfit to school",
+    cost: 75,
+    icon: "👕",
+  },
+  {
+    id: "reward-9",
+    title: "Extra Recess Time",
+    description: "5 extra minutes at recess",
+    cost: 40,
+    icon: "⚽",
+  },
+  {
+    id: "reward-10",
+    title: "Class DJ for a Day",
+    description: "Pick the music during work time",
+    cost: 60,
+    icon: "🎵",
   },
 ];
 
@@ -162,12 +348,54 @@ export function getStudent(id: string): Student | undefined {
   return students.find((s) => s.id === id);
 }
 
+/**
+ * Returns balance history for chart. Uses student.balanceHistory if present,
+ * otherwise generates plausible history from current spend/grow balances.
+ */
+export function getBalanceHistory(studentId: string): BalanceHistoryEntry[] {
+  const student = getStudent(studentId);
+  if (!student) return [];
+  if (student.balanceHistory && student.balanceHistory.length > 0) {
+    return student.balanceHistory;
+  }
+  return generateHistoryFromCurrent(student.spendTokens, student.growTokens);
+}
+
 export function updateStudent(id: string, data: Partial<Student>): Student | null {
   const index = students.findIndex((s) => s.id === id);
   if (index === -1) return null;
   
   students[index] = { ...students[index], ...data };
   return students[index];
+}
+
+export type CreateStudentData = {
+  name: string;
+};
+
+export function createStudent(data: CreateStudentData): Student {
+  const slug = data.name
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+  const baseId = slug || "student";
+  let id = baseId;
+  let suffix = 1;
+  while (students.some((s) => s.id === id)) {
+    id = `${baseId}-${suffix}`;
+    suffix += 1;
+  }
+  const student: Student = {
+    id,
+    name: data.name.trim(),
+    spendTokens: 100,
+    growTokens: 50,
+    assignedMissions: [],
+    purchasedRewards: [],
+  };
+  students.push(student);
+  return student;
 }
 
 // Mission functions
@@ -282,29 +510,84 @@ export function assignMission(missionId: string, studentId: string): Mission | n
   return updateMission(missionId, mission);
 }
 
-export function completeMission(missionId: string): { mission: Mission; student: Student } | null {
-  const mission = getMission(missionId);
-  if (!mission || !mission.assignedStudentId) return null;
-  
-  const student = getStudent(mission.assignedStudentId);
-  if (!student) return null;
-  
-  // Calculate token split (70% spend, 30% grow)
-  const reward = mission.currentReward;
-  const spendAmount = Math.floor(reward * 0.7);
-  const growAmount = Math.floor(reward * 0.3);
-  
-  // Award tokens
+let pendingRewards: PendingReward[] = [];
+
+export function getRecommendedSplit(total: number): { spend: number; grow: number } {
+  return {
+    spend: Math.floor(total * RECOMMENDED_SPEND_RATIO),
+    grow: Math.floor(total * RECOMMENDED_GROW_RATIO),
+  };
+}
+
+export function getPendingRewardsForStudent(studentId: string): PendingReward[] {
+  return pendingRewards.filter((p) => p.studentId === studentId);
+}
+
+export function claimPendingReward(
+  pendingId: string,
+  spendAmount: number,
+  growAmount: number
+): { mission: Mission; student: Student } | null {
+  const index = pendingRewards.findIndex((p) => p.id === pendingId);
+  if (index === -1) return null;
+  const pending = pendingRewards[index]!;
+  if (spendAmount < 0 || growAmount < 0 || spendAmount + growAmount !== pending.totalAmount) {
+    return null;
+  }
+  const student = getStudent(pending.studentId);
+  const mission = getMission(pending.missionId);
+  if (!student || !mission) return null;
+
   student.spendTokens += spendAmount;
   student.growTokens += growAmount;
-  
-  // Update mission status
-  mission.status = "COMPLETED";
-  
-  updateMission(missionId, mission);
   updateStudent(student.id, student);
-  
+  pendingRewards.splice(index, 1);
+
   return { mission, student };
+}
+
+export function transferTokens(
+  studentId: string,
+  amount: number,
+  direction: "toSpend" | "toGrow"
+): { student: Student } | null {
+  const student = getStudent(studentId);
+  if (!student) return null;
+  if (amount <= 0) return null;
+  if (direction === "toSpend") {
+    if (student.growTokens < amount) return null;
+    student.growTokens -= amount;
+    student.spendTokens += amount;
+  } else {
+    if (student.spendTokens < amount) return null;
+    student.spendTokens -= amount;
+    student.growTokens += amount;
+  }
+  updateStudent(studentId, student);
+  return { student };
+}
+
+export function completeMission(missionId: string): { mission: Mission; student: Student; pendingReward: PendingReward } | null {
+  const mission = getMission(missionId);
+  if (!mission || !mission.assignedStudentId) return null;
+
+  const student = getStudent(mission.assignedStudentId);
+  if (!student) return null;
+
+  const reward = mission.currentReward;
+  mission.status = "COMPLETED";
+  updateMission(missionId, mission);
+
+  const pendingReward: PendingReward = {
+    id: `pending-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    missionId,
+    studentId: student.id,
+    missionTitle: mission.title,
+    totalAmount: reward,
+  };
+  pendingRewards.push(pendingReward);
+
+  return { mission, student, pendingReward };
 }
 
 // Reward functions

@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     const context = parseContext(body);
     const recentMessages = parseRecentMessages(body);
-    const hasKey = !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "your_api_key_here");
+    const hasKey = !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "AIzaSyAImWi9FkdQteiyQ1gh20sR9Qt9tl5TyAg");
     if (!hasKey) {
       console.warn("[Ask Narrator] GEMINI_API_KEY not set or is placeholder. Add a key in .env.local and restart dev server.");
     }

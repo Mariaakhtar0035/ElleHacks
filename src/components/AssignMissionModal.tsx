@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Modal } from "@/components/ui/Modal";
+import { StudentAvatar } from "@/components/StudentAvatar";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Student } from "@/types";
@@ -67,12 +68,12 @@ export function AssignMissionModal({
                   `}
                 >
                   <span className="flex items-center gap-2">
-                    <span className="text-2xl" aria-hidden>
-                      {student.id === "alex" && "👦"}
-                      {student.id === "jordan" && "👧"}
-                      {student.id === "sam" && "🧒"}
-                      {!["alex", "jordan", "sam"].includes(student.id) && "👤"}
-                    </span>
+                    <StudentAvatar
+                      studentId={student.id}
+                      studentName={student.name}
+                      size="sm"
+                      className="w-8 h-8 text-sm"
+                    />
                     <span>{student.name}</span>
                   </span>
                   {isAssigned && (

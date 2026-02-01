@@ -8,13 +8,17 @@ import { Badge } from "@/components/ui/Badge";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
 import { MissionFormModal } from "@/components/MissionFormModal";
 import { RewardFormModal } from "@/components/RewardFormModal";
+import { StudentFormModal } from "@/components/StudentFormModal";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import { AssignMissionModal } from "@/components/AssignMissionModal";
+import { StudentAvatar } from "@/components/StudentAvatar";
 import { SuccessSparkle } from "@/components/SuccessSparkle";
 import {
   getStudents,
   getMissions,
   getRewards,
+  getRecommendedSplit,
+  createStudent,
   assignMission,
   unassignMission,
   completeMission,
@@ -68,6 +72,7 @@ export default function TeacherDashboard() {
   const [showRewardDeleteModal, setShowRewardDeleteModal] = useState(false);
   const [rewardToDelete, setRewardToDelete] = useState<Reward | null>(null);
   const [rewards, setRewards] = useState(getRewards());
+  const [showStudentFormModal, setShowStudentFormModal] = useState(false);
 
   const refreshData = () => {
     setStudents(getStudents());
@@ -99,10 +104,8 @@ export default function TeacherDashboard() {
   const handleApproveMission = (missionId: string) => {
     const result = completeMission(missionId);
     if (result) {
-      const spendAmount = Math.floor(result.mission.currentReward * 0.7);
-      const growAmount = Math.floor(result.mission.currentReward * 0.3);
       triggerSuccess(
-        `Mission approved! ${result.student.name} earned ${spendAmount} Spend + ${growAmount} Grow tokens.`
+        `Mission approved! ${result.student.name} has ${result.pendingReward.totalAmount} tokens to claim.`
       );
     }
   };
@@ -155,6 +158,12 @@ export default function TeacherDashboard() {
     }
     setShowRewardFormModal(false);
     setEditingReward(null);
+  };
+
+  const handleStudentFormSubmit = (data: { name: string }) => {
+    createStudent(data);
+    triggerSuccess(`Student ${data.name} added!`);
+    setShowStudentFormModal(false);
   };
 
   const handleRewardDeleteConfirm = () => {
@@ -441,8 +450,7 @@ export default function TeacherDashboard() {
             <div className="space-y-4">
               {pendingMissions.map((mission) => {
                 const student = students.find((s) => s.id === mission.assignedStudentId);
-                const spendAmount = Math.floor(mission.currentReward * 0.7);
-                const growAmount = Math.floor(mission.currentReward * 0.3);
+                const { spend: spendAmount, grow: growAmount } = getRecommendedSplit(mission.currentReward);
                 return (
                   <div
                     key={mission.id}
@@ -483,9 +491,18 @@ export default function TeacherDashboard() {
 
         {/* Student Overview */}
         <Card borderColor="border-purple-500" className="p-8">
-          <h2 className="text-3xl font-bold text-gray-900 font-display mb-6">
-            👥 Student Overview
-          </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 font-display">
+              👥 Student Overview
+            </h2>
+            <Button
+              variant="primary"
+              onClick={() => setShowStudentFormModal(true)}
+              className="shrink-0"
+            >
+              + Add Student
+            </Button>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {students.map((student) => {
@@ -497,11 +514,12 @@ export default function TeacherDashboard() {
               return (
                 <Card key={student.id} borderColor="border-gray-300" className="p-6 hover:shadow-lg transition-shadow">
                   <div className="text-center mb-4">
-                    <div className="text-5xl mb-2">
-                      {student.id === "alex" && "👦"}
-                      {student.id === "jordan" && "👧"}
-                      {student.id === "sam" && "🧒"}
-                      {!["alex", "jordan", "sam"].includes(student.id) && "👤"}
+                    <div className="flex justify-center mb-2">
+                      <StudentAvatar
+                        studentId={student.id}
+                        studentName={student.name}
+                        size="md"
+                      />
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900 font-display">
                       {student.name}
@@ -589,6 +607,12 @@ export default function TeacherDashboard() {
         }}
         reward={editingReward}
         onSubmit={handleRewardFormSubmit}
+      />
+
+      <StudentFormModal
+        isOpen={showStudentFormModal}
+        onClose={() => setShowStudentFormModal(false)}
+        onSubmit={handleStudentFormSubmit}
       />
 
       <ConfirmDeleteModal

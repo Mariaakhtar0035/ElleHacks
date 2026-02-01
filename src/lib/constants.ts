@@ -1,0 +1,2 @@
+export const RECOMMENDED_SPEND_RATIO = 0.7;
+export const RECOMMENDED_GROW_RATIO = 0.3;
