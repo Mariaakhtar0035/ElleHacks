@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
+import { MissionCard } from "@/components/MissionCard";
 import { MissionFormModal } from "@/components/MissionFormModal";
 import { RewardFormModal } from "@/components/RewardFormModal";
 import { StudentFormModal } from "@/components/StudentFormModal";
@@ -31,29 +32,7 @@ import {
   updateReward,
   deleteReward,
 } from "@/lib/store";
-import { Mission, MissionBandColor, Reward } from "@/types";
-
-const BAND_CLASSES: Record<MissionBandColor, string> = {
-  green: "bg-green-600",
-  darkBlue: "bg-blue-800",
-  lightBlue: "bg-sky-400",
-  red: "bg-red-600",
-  yellow: "bg-amber-400",
-  orange: "bg-orange-500",
-  brown: "bg-amber-800",
-  purple: "bg-purple-600",
-};
-
-function getBandColorKey(mission: Mission): MissionBandColor {
-  const colors: MissionBandColor[] = ["green", "darkBlue", "lightBlue", "red", "yellow", "orange", "brown", "purple"];
-  if (mission.bandColor) return mission.bandColor;
-  let hash = 0;
-  for (let i = 0; i < mission.id.length; i++) {
-    hash = (hash << 5) - hash + mission.id.charCodeAt(i);
-    hash |= 0;
-  }
-  return colors[Math.abs(hash) % colors.length];
-}
+import { Mission, Reward } from "@/types";
 
 export default function TeacherDashboard() {
   const [students, setStudents] = useState(getStudents());
@@ -73,6 +52,7 @@ export default function TeacherDashboard() {
   const [rewardToDelete, setRewardToDelete] = useState<Reward | null>(null);
   const [rewards, setRewards] = useState(getRewards());
   const [showStudentFormModal, setShowStudentFormModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<"missions" | "rewards" | "requests" | "students">("missions");
 
   const refreshData = () => {
     setStudents(getStudents());
@@ -160,7 +140,7 @@ export default function TeacherDashboard() {
     setEditingReward(null);
   };
 
-  const handleStudentFormSubmit = (data: { name: string }) => {
+  const handleStudentFormSubmit = (data: { name: string; pin?: string }) => {
     createStudent(data);
     triggerSuccess(`Student ${data.name} added!`);
     setShowStudentFormModal(false);
@@ -205,6 +185,75 @@ export default function TeacherDashboard() {
           </div>
         )}
 
+        <nav
+          role="tablist"
+          aria-label="Dashboard sections"
+          className="flex flex-wrap gap-2 border-b-2 border-gray-200 pb-2 mb-6"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "missions"}
+            aria-controls="tabpanel-missions"
+            id="tab-missions"
+            onClick={() => setActiveTab("missions")}
+            className={`px-4 py-2 rounded-xl font-display font-bold border-2 transition-colors ${
+              activeTab === "missions"
+                ? "bg-amber-100 text-gray-900 border-amber-300"
+                : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
+            }`}
+          >
+            Missions
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "rewards"}
+            aria-controls="tabpanel-rewards"
+            id="tab-rewards"
+            onClick={() => setActiveTab("rewards")}
+            className={`px-4 py-2 rounded-xl font-display font-bold border-2 transition-colors ${
+              activeTab === "rewards"
+                ? "bg-emerald-100 text-gray-900 border-emerald-300"
+                : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
+            }`}
+          >
+            Rewards
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "requests"}
+            aria-controls="tabpanel-requests"
+            id="tab-requests"
+            onClick={() => setActiveTab("requests")}
+            className={`px-4 py-2 rounded-xl font-display font-bold border-2 transition-colors ${
+              activeTab === "requests"
+                ? "bg-blue-100 text-gray-900 border-blue-300"
+                : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
+            }`}
+          >
+            Requests & Approvals
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "students"}
+            aria-controls="tabpanel-students"
+            id="tab-students"
+            onClick={() => setActiveTab("students")}
+            className={`px-4 py-2 rounded-xl font-display font-bold border-2 transition-colors ${
+              activeTab === "students"
+                ? "bg-purple-100 text-gray-900 border-purple-300"
+                : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
+            }`}
+          >
+            Students
+          </button>
+        </nav>
+
+        {activeTab === "missions" && (
+        <div role="tabpanel" id="tabpanel-missions" aria-labelledby="tab-missions" className="space-y-8">
         {/* All Missions - CRUD */}
         <Card borderColor="border-amber-500" className="p-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -230,75 +279,38 @@ export default function TeacherDashboard() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {missions.map((mission) => {
-                const bandKey = getBandColorKey(mission);
                 const assignedStudent = mission.assignedStudentId
                   ? students.find((s) => s.id === mission.assignedStudentId)
                   : null;
                 return (
-                  <div
+                  <MissionCard
                     key={mission.id}
-                    className="flex flex-col rounded-[20px] border-4 border-gray-800 overflow-hidden bg-[#faf8f5] shadow-[4px_4px_0_rgba(0,0,0,0.12)] transition-all hover:shadow-[6px_6px_0_rgba(0,0,0,0.18)] hover:-translate-y-0.5"
-                  >
-                    <div
-                      className={`min-h-[20%] shrink-0 px-4 py-3 flex items-center justify-center rounded-t-[16px] ${BAND_CLASSES[bandKey]} text-white`}
-                    >
-                      <span className="font-display font-bold text-sm uppercase tracking-wider text-center line-clamp-2">
-                        {mission.title}
-                      </span>
-                    </div>
-                    <div className="p-4 flex-1 flex flex-col gap-3">
-                      <p className="text-gray-700 text-sm line-clamp-2">{mission.description}</p>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-display font-bold text-amber-800 text-sm">
-                          🪙 {mission.currentReward} tokens
-                        </span>
-                        <Badge status={mission.status} />
-                      </div>
-                      {assignedStudent && (
-                        <p className="text-xs text-gray-600">
-                          Assigned to: <span className="font-bold">{assignedStudent.name}</span>
-                        </p>
-                      )}
-                      <div className="flex gap-2 mt-auto pt-2">
-                        <Button
-                          variant="secondary"
-                          onClick={() => {
-                            setEditingMission(mission);
-                            setShowFormModal(true);
-                          }}
-                          className="flex-1 text-sm py-2"
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="danger"
-                          onClick={() => {
-                            setMissionToDelete(mission);
-                            setShowDeleteModal(true);
-                          }}
-                          className="flex-1 text-sm py-2"
-                        >
-                          Delete
-                        </Button>
-                        <Button
-                          variant="primary"
-                          onClick={() => {
-                            setMissionToAssign(mission);
-                            setShowAssignModal(true);
-                          }}
-                          className="flex-1 text-sm py-2"
-                        >
-                          Assign
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                    mission={mission}
+                    variant="teacher"
+                    assignedStudentName={assignedStudent?.name}
+                    onEdit={() => {
+                      setEditingMission(mission);
+                      setShowFormModal(true);
+                    }}
+                    onDelete={() => {
+                      setMissionToDelete(mission);
+                      setShowDeleteModal(true);
+                    }}
+                    onAssign={() => {
+                      setMissionToAssign(mission);
+                      setShowAssignModal(true);
+                    }}
+                  />
                 );
               })}
             </div>
           )}
         </Card>
+        </div>
+        )}
 
+        {activeTab === "rewards" && (
+        <div role="tabpanel" id="tabpanel-rewards" aria-labelledby="tab-rewards" className="space-y-8">
         {/* All Rewards - CRUD */}
         <Card borderColor="border-emerald-500" className="p-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -349,17 +361,17 @@ export default function TeacherDashboard() {
                           setEditingReward(reward);
                           setShowRewardFormModal(true);
                         }}
-                        className="flex-1 text-sm py-2"
+                        className="flex-1 text-sm py-2 border-2 border-amber-200 bg-amber-50! text-gray-800! hover:bg-amber-100! hover:border-amber-300!"
                       >
                         Edit
                       </Button>
                       <Button
-                        variant="danger"
+                        variant="secondary"
                         onClick={() => {
                           setRewardToDelete(reward);
                           setShowRewardDeleteModal(true);
                         }}
-                        className="flex-1 text-sm py-2"
+                        className="flex-1 text-sm py-2 border-2 border-red-200 bg-red-50! text-gray-800! hover:bg-red-100! hover:border-red-300!"
                       >
                         Delete
                       </Button>
@@ -370,7 +382,11 @@ export default function TeacherDashboard() {
             </div>
           )}
         </Card>
+        </div>
+        )}
 
+        {activeTab === "requests" && (
+        <div role="tabpanel" id="tabpanel-requests" aria-labelledby="tab-requests" className="space-y-8">
         {/* Mission Requests */}
         <Card borderColor="border-blue-500" className="p-8">
           <h2 className="text-3xl font-bold text-gray-900 font-display mb-6">
@@ -488,7 +504,11 @@ export default function TeacherDashboard() {
             </div>
           )}
         </Card>
+        </div>
+        )}
 
+        {activeTab === "students" && (
+        <div role="tabpanel" id="tabpanel-students" aria-labelledby="tab-students" className="space-y-8">
         {/* Student Overview */}
         <Card borderColor="border-purple-500" className="p-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -575,6 +595,8 @@ export default function TeacherDashboard() {
             })}
           </div>
         </Card>
+        </div>
+        )}
       </main>
 
       <MissionFormModal

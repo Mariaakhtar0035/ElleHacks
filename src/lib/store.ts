@@ -7,6 +7,7 @@ let students: Student[] = [
   {
     id: "alex",
     name: "Alex",
+    pin: "1234",
     spendTokens: 165,
     growTokens: 95,
     assignedMissions: ["mission-1", "mission-5"],
@@ -29,6 +30,7 @@ let students: Student[] = [
   {
     id: "jordan",
     name: "Jordan",
+    pin: "1234",
     spendTokens: 45,
     growTokens: 82,
     assignedMissions: ["mission-2"],
@@ -49,6 +51,7 @@ let students: Student[] = [
   {
     id: "sam",
     name: "Sam",
+    pin: "1234",
     spendTokens: 230,
     growTokens: 120,
     assignedMissions: ["mission-3"],
@@ -57,6 +60,7 @@ let students: Student[] = [
   {
     id: "riley",
     name: "Riley",
+    pin: "1234",
     spendTokens: 88,
     growTokens: 65,
     assignedMissions: ["mission-4"],
@@ -65,6 +69,7 @@ let students: Student[] = [
   {
     id: "morgan",
     name: "Morgan",
+    pin: "1234",
     spendTokens: 142,
     growTokens: 55,
     assignedMissions: ["mission-6"],
@@ -73,6 +78,7 @@ let students: Student[] = [
   {
     id: "casey",
     name: "Casey",
+    pin: "1234",
     spendTokens: 100,
     growTokens: 50,
     assignedMissions: [],
@@ -348,6 +354,12 @@ export function getStudent(id: string): Student | undefined {
   return students.find((s) => s.id === id);
 }
 
+export function verifyStudentPin(studentId: string, pin: string): boolean {
+  const student = getStudent(studentId);
+  if (!student) return false;
+  return student.pin === pin;
+}
+
 /**
  * Returns balance history for chart. Uses student.balanceHistory if present,
  * otherwise generates plausible history from current spend/grow balances.
@@ -371,6 +383,7 @@ export function updateStudent(id: string, data: Partial<Student>): Student | nul
 
 export type CreateStudentData = {
   name: string;
+  pin?: string;
 };
 
 export function createStudent(data: CreateStudentData): Student {
@@ -389,6 +402,7 @@ export function createStudent(data: CreateStudentData): Student {
   const student: Student = {
     id,
     name: data.name.trim(),
+    pin: (data.pin && /^\d{4}$/.test(data.pin)) ? data.pin : "1234",
     spendTokens: 100,
     growTokens: 50,
     assignedMissions: [],

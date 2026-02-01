@@ -179,7 +179,7 @@ export default function HomePage() {
             {students.map((student) => (
               <Link
                 key={student.id}
-                href={`/student/${student.id}`}
+                href={`/student/${student.id}/login`}
                 className="landing-card-hover block"
               >
                 <Card

@@ -41,22 +41,6 @@ export default function GrowTokensPage() {
         onTransfer={refresh}
       />
 
-      {/* Current Grow Tokens */}
-      <Card borderColor="border-blue-500" className="p-8 text-center">
-        <h2 className="font-display font-bold text-2xl text-gray-900 mb-4">
-          Current Grow Tokens
-        </h2>
-        <TokenDisplay
-          amount={student.growTokens}
-          type="grow"
-          size="lg"
-          showLabel={false}
-        />
-        <p className="text-gray-600 mt-4 font-medium">
-          These tokens are locked and growing at 2% per week!
-        </p>
-      </Card>
-
       {/* Growth Explanation */}
       <Card borderColor="border-amber-400" className="p-6 bg-amber-50">
         <div className="flex items-start gap-4">

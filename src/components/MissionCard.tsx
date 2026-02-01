@@ -40,7 +40,7 @@ function getBandColorIndex(missionId: string): number {
 
 interface MissionCardProps {
   mission: Mission;
-  variant?: "marketplace" | "myMission";
+  variant?: "marketplace" | "myMission" | "teacher";
   studentId?: string;
   onRequest?: (missionId: string) => void;
   status?: MissionStatus;
@@ -53,6 +53,10 @@ interface MissionCardProps {
   onExplainRewardSplit?: (mission: Mission) => void;
   /** Optional: pass assigned student name (e.g. from teacher view). If omitted, resolves from store when possible. */
   assignedStudentName?: string;
+  /** Teacher variant: callbacks for Edit, Delete, Assign */
+  onEdit?: (mission: Mission) => void;
+  onDelete?: (mission: Mission) => void;
+  onAssign?: (mission: Mission) => void;
 }
 
 export function MissionCard({
@@ -67,8 +71,12 @@ export function MissionCard({
   actionHint,
   onExplainRewardSplit,
   assignedStudentName: assignedStudentNameProp,
+  onEdit,
+  onDelete,
+  onAssign,
 }: MissionCardProps) {
   const isMarketplace = variant === "marketplace";
+  const isTeacher = variant === "teacher";
   const alreadyRequested = isMarketplace && studentId ? mission.requestedBy.includes(studentId) : false;
   const isPopular = mission.requestCount > 2;
   const isHighDemand = mission.requestCount > 1 && mission.requestCount <= 2;
@@ -78,7 +86,7 @@ export function MissionCard({
   const bandClasses = BAND_CLASSES[bandColorKey as (typeof BAND_COLORS)[number]];
 
   const displayStatus = statusProp ?? mission.status;
-  const showStatusBadge = !isMarketplace;
+  const showStatusBadge = !isMarketplace || isTeacher;
 
   const assignedStudentName =
     assignedStudentNameProp ??
@@ -135,14 +143,18 @@ export function MissionCard({
             <span className="text-right font-normal">{mission.description}</span>
           </div>
 
-          {(assignedStudentName || mission.requestCount > 0) && (
+          {(isTeacher || assignedStudentName || mission.requestCount > 0) && (
             <div className="flex justify-between items-center gap-4 text-xs py-2 border-t border-black">
-              <span className="uppercase font-bold shrink-0">Claimed by</span>
+              <span className="uppercase font-bold shrink-0">
+                {isTeacher ? "Assigned to" : "Claimed by"}
+              </span>
               <span className="text-right font-normal">
                 {assignedStudentName ? (
                   variant === "myMission" && mission.assignedStudentId === studentId
                     ? "You"
                     : assignedStudentName
+                ) : isTeacher ? (
+                  "—"
                 ) : (
                   <>
                     {mission.requestCount}{" "}
@@ -196,7 +208,32 @@ export function MissionCard({
               {defaultActionLabel}
             </Button>
           )}
-          {!isMarketplace && defaultActionLabel && onAction && (
+          {isTeacher && onEdit && onDelete && onAssign && (
+            <div className="flex gap-2 mt-2">
+              <Button
+                variant="secondary"
+                onClick={() => onEdit(mission)}
+                className="flex-1 text-sm py-2 rounded-none shadow-none border-2 border-amber-200 bg-amber-50! text-gray-800! hover:bg-amber-100! hover:border-amber-300!"
+              >
+                Edit
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => onDelete(mission)}
+                className="flex-1 text-sm py-2 rounded-none shadow-none border-2 border-red-200 bg-red-50! text-gray-800! hover:bg-red-100! hover:border-red-300!"
+              >
+                Delete
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => onAssign(mission)}
+                className="flex-1 text-sm py-2 rounded-none shadow-none border-2 border-sky-200 bg-sky-50! text-gray-800! hover:bg-sky-100! hover:border-sky-300!"
+              >
+                Assign
+              </Button>
+            </div>
+          )}
+          {!isMarketplace && !isTeacher && defaultActionLabel && onAction && (
             <Button
               variant={displayStatus === "COMPLETED" ? "secondary" : "primary"}
               onClick={onAction}
@@ -206,10 +243,10 @@ export function MissionCard({
               {defaultActionLabel}
             </Button>
           )}
-          {!isMarketplace && actionHint && (
+          {!isMarketplace && !isTeacher && actionHint && (
             <p className="text-xs font-medium uppercase mt-2">{actionHint}</p>
           )}
-          {!isMarketplace && displayStatus === "COMPLETED" && onExplainRewardSplit && (
+          {!isMarketplace && !isTeacher && displayStatus === "COMPLETED" && onExplainRewardSplit && (
             <button
               type="button"
               onClick={() => onExplainRewardSplit(mission)}

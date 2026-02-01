@@ -16,6 +16,8 @@ export interface Student {
   purchasedRewards: string[]; // reward IDs
   /** Optional; if missing, generated from current balances */
   balanceHistory?: BalanceHistoryEntry[];
+  /** 4-digit PIN for student login */
+  pin: string;
 }
 
 /** Top band color for mission card (board-game sets) */

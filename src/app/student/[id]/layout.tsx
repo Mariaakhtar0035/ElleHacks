@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
 import { StudentAvatar } from "@/components/StudentAvatar";
 import { NarratorBanner } from "@/components/NarratorBanner";
@@ -11,6 +11,8 @@ import { MrsPennyworthAvatar } from "@/components/MrsPennyworthAvatar";
 import { getStudent, getStudentMissions, getAvailableMissions, getMissions, getRewards } from "@/lib/store";
 import { NarratorPage } from "@/types";
 
+const SESSION_KEY = "student_session";
+
 export default function StudentLayout({
   children,
 }: {
@@ -18,8 +20,31 @@ export default function StudentLayout({
 }) {
   const params = useParams();
   const pathname = usePathname();
+  const router = useRouter();
   const studentId = params.id as string;
   const student = getStudent(studentId);
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const [showPennyworthPanel, setShowPennyworthPanel] = useState(false);
+
+  const isLoginPage = pathname.endsWith("/login");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!isLoginPage) {
+      const session = localStorage.getItem(SESSION_KEY);
+      if (session !== studentId) {
+        router.replace(`/student/${studentId}/login`);
+        return;
+      }
+    }
+    setSessionChecked(true);
+  }, [isLoginPage, studentId, router]);
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(SESSION_KEY);
+    }
+  };
 
   if (!student) {
     return (
@@ -32,6 +57,18 @@ export default function StudentLayout({
             Go back home
           </Link>
         </div>
+      </div>
+    );
+  }
+
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
+
+  if (!sessionChecked) {
+    return (
+      <div className="min-h-screen bg-[#d2e5d2] flex items-center justify-center">
+        <div className="animate-pulse text-gray-600 font-display font-bold">Loading...</div>
       </div>
     );
   }
@@ -73,7 +110,6 @@ export default function StudentLayout({
     availableMissions: availableMissions.map((m) => ({ title: m.title, reward: m.currentReward })),
     availableRewards: allRewards.filter((r) => !r.soldOut).map((r) => ({ title: r.title, cost: r.cost })),
   };
-  const [showPennyworthPanel, setShowPennyworthPanel] = useState(false);
 
   return (
     <div className="min-h-screen">
@@ -82,7 +118,12 @@ export default function StudentLayout({
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-4">
-              <Link href="/" className="text-4xl hover:scale-105 transition-transform" aria-label="Home">
+              <Link
+                href="/"
+                onClick={handleLogout}
+                className="text-4xl hover:scale-105 transition-transform"
+                aria-label="Home"
+              >
                 🏦
               </Link>
               <div className="flex items-center gap-3">
