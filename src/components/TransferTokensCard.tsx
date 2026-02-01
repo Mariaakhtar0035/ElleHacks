@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { transferTokens, type TokenBucket } from "@/lib/store";
 
 const BUCKETS: { value: TokenBucket; label: string; icon: string }[] = [
-  { value: "spend", label: "Spend", icon: "💰" },
-  { value: "save", label: "Save", icon: "💾" },
+  { value: "spend", label: "Spend", icon: "🪙" },
+  { value: "save", label: "Save", icon: "💰" },
   { value: "grow", label: "Grow", icon: "🌱" },
 ];
 

@@ -26,7 +26,7 @@ export function TokenChip({
         ${size === "sm" ? "text-sm" : "text-base"}
       `}
     >
-      <span>{isSpend ? "🪙" : isSave ? "💾" : "🌱"}</span>
+      <span>{isSpend ? "🪙" : isSave ? "�" : "🌱"}</span>
       <span>{amount}</span>
     </div>
   );

@@ -123,7 +123,7 @@ export function GrowthComparisonChart({
             <Line
               type="linear"
               dataKey="spend"
-              name="💰 Spend"
+              name="🪙 Spend"
               stroke="#eab308"
               strokeWidth={3}
               dot={false}
@@ -134,7 +134,7 @@ export function GrowthComparisonChart({
             <Line
               type="monotone"
               dataKey="save"
-              name="💾 Save"
+              name="💰 Save"
               stroke="#0ea5e9"
               strokeWidth={3}
               dot={false}

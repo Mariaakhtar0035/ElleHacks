@@ -43,7 +43,7 @@ export function TokenDisplay({
         title={type === "spend" ? "Spend Tokens" : type === "save" ? "Save Tokens" : "Grow Tokens"}
       >
         <span className={`${config.icon} drop-shadow-sm`}>
-          {isSpend ? "🪙" : isSave ? "💾" : "🌱"}
+          {isSpend ? "🪙" : isSave ? "💰" : "🌱"}
         </span>
         {showLock && type === "grow" && (
           <span
