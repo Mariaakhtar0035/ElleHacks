@@ -37,7 +37,9 @@ import { Mission, Reward } from "@/types";
 export default function TeacherDashboard() {
   const [students, setStudents] = useState(getStudents());
   const [missions, setMissions] = useState(getMissions());
-  const [pendingMissions, setPendingMissions] = useState(getPendingApprovalMissions());
+  const [pendingMissions, setPendingMissions] = useState(
+    getPendingApprovalMissions(),
+  );
   const [message, setMessage] = useState("");
   const [showSparkle, setShowSparkle] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
@@ -52,7 +54,9 @@ export default function TeacherDashboard() {
   const [rewardToDelete, setRewardToDelete] = useState<Reward | null>(null);
   const [rewards, setRewards] = useState(getRewards());
   const [showStudentFormModal, setShowStudentFormModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<"missions" | "rewards" | "requests" | "students">("missions");
+  const [activeTab, setActiveTab] = useState<
+    "missions" | "rewards" | "requests" | "students"
+  >("missions");
 
   const refreshData = () => {
     setStudents(getStudents());
@@ -85,7 +89,7 @@ export default function TeacherDashboard() {
     const result = completeMission(missionId);
     if (result) {
       triggerSuccess(
-        `Mission approved! ${result.student.name} has ${result.pendingReward.totalAmount} tokens to claim.`
+        `Mission approved! ${result.student.name} has ${result.pendingReward.totalAmount} tokens to claim.`,
       );
     }
   };
@@ -97,7 +101,10 @@ export default function TeacherDashboard() {
     bandColor?: MissionBandColor;
   }) => {
     if (editingMission) {
-      const newReward = calculateReward(data.baseReward, editingMission.requestCount);
+      const newReward = calculateReward(
+        data.baseReward,
+        editingMission.requestCount,
+      );
       updateMission(editingMission.id, {
         title: data.title,
         description: data.description,
@@ -155,7 +162,7 @@ export default function TeacherDashboard() {
   };
 
   const requestedMissions = missions.filter(
-    (m) => m.requestedBy.length > 0 && !m.assignedStudentId
+    (m) => m.requestedBy.length > 0 && !m.assignedStudentId,
   );
 
   return (
@@ -181,7 +188,9 @@ export default function TeacherDashboard() {
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
         {message && (
           <div className="bg-green-100 border-4 border-green-500 rounded-2xl p-4 text-center shadow-md">
-            <p className="text-lg font-bold text-green-800 font-display">{message}</p>
+            <p className="text-lg font-bold text-green-800 font-display">
+              {message}
+            </p>
           </div>
         )}
 
@@ -253,349 +262,413 @@ export default function TeacherDashboard() {
         </nav>
 
         {activeTab === "missions" && (
-        <div role="tabpanel" id="tabpanel-missions" aria-labelledby="tab-missions" className="space-y-8">
-        {/* All Missions - CRUD */}
-        <Card borderColor="border-amber-500" className="p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h2 className="text-3xl font-bold text-gray-900 font-display">
-              🃏 All Missions
-            </h2>
-            <Button
-              variant="primary"
-              onClick={() => {
-                setEditingMission(null);
-                setShowFormModal(true);
-              }}
-              className="shrink-0"
-            >
-              + Add Mission
-            </Button>
-          </div>
+          <div
+            role="tabpanel"
+            id="tabpanel-missions"
+            aria-labelledby="tab-missions"
+            className="space-y-8"
+          >
+            {/* All Missions - CRUD */}
+            <Card borderColor="border-amber-500" className="p-8">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h2 className="text-3xl font-bold text-gray-900 font-display">
+                  🃏 All Missions
+                </h2>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setEditingMission(null);
+                    setShowFormModal(true);
+                  }}
+                  className="shrink-0"
+                >
+                  + Add Mission
+                </Button>
+              </div>
 
-          {missions.length === 0 ? (
-            <p className="text-gray-600 text-center py-8 font-display">
-              No missions yet. Add one to get started!
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {missions.map((mission) => {
-                const assignedStudent = mission.assignedStudentId
-                  ? students.find((s) => s.id === mission.assignedStudentId)
-                  : null;
-                return (
-                  <MissionCard
-                    key={mission.id}
-                    mission={mission}
-                    variant="teacher"
-                    assignedStudentName={assignedStudent?.name}
-                    onEdit={() => {
-                      setEditingMission(mission);
-                      setShowFormModal(true);
-                    }}
-                    onDelete={() => {
-                      setMissionToDelete(mission);
-                      setShowDeleteModal(true);
-                    }}
-                    onAssign={() => {
-                      setMissionToAssign(mission);
-                      setShowAssignModal(true);
-                    }}
-                  />
-                );
-              })}
-            </div>
-          )}
-        </Card>
-        </div>
+              {missions.length === 0 ? (
+                <p className="text-gray-600 text-center py-8 font-display">
+                  No missions yet. Add one to get started!
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {missions.map((mission) => {
+                    const assignedStudent = mission.assignedStudentId
+                      ? students.find((s) => s.id === mission.assignedStudentId)
+                      : null;
+                    return (
+                      <MissionCard
+                        key={mission.id}
+                        mission={mission}
+                        variant="teacher"
+                        assignedStudentName={assignedStudent?.name}
+                        onEdit={() => {
+                          setEditingMission(mission);
+                          setShowFormModal(true);
+                        }}
+                        onDelete={() => {
+                          setMissionToDelete(mission);
+                          setShowDeleteModal(true);
+                        }}
+                        onAssign={() => {
+                          // If mission is completed, unassign it instead of showing assign modal
+                          if (mission.status === "COMPLETED") {
+                            unassignMission(mission.id);
+                            triggerSuccess(
+                              `Mission "${mission.title}" reset to available!`,
+                            );
+                          } else {
+                            setMissionToAssign(mission);
+                            setShowAssignModal(true);
+                          }
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          </div>
         )}
 
         {activeTab === "rewards" && (
-        <div role="tabpanel" id="tabpanel-rewards" aria-labelledby="tab-rewards" className="space-y-8">
-        {/* All Rewards - CRUD */}
-        <Card borderColor="border-emerald-500" className="p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h2 className="text-3xl font-bold text-gray-900 font-display">
-              🎁 All Rewards
-            </h2>
-            <Button
-              variant="primary"
-              onClick={() => {
-                setEditingReward(null);
-                setShowRewardFormModal(true);
-              }}
-              className="shrink-0"
-            >
-              + Add Reward
-            </Button>
-          </div>
-
-          {rewards.length === 0 ? (
-            <p className="text-gray-600 text-center py-8 font-display">
-              No rewards yet. Add one to get started!
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {rewards.map((reward) => (
-                <div
-                  key={reward.id}
-                  className="flex flex-col rounded-2xl border-2 border-gray-200 overflow-hidden bg-white shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5"
+          <div
+            role="tabpanel"
+            id="tabpanel-rewards"
+            aria-labelledby="tab-rewards"
+            className="space-y-8"
+          >
+            {/* All Rewards - CRUD */}
+            <Card borderColor="border-emerald-500" className="p-8">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h2 className="text-3xl font-bold text-gray-900 font-display">
+                  🎁 All Rewards
+                </h2>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setEditingReward(null);
+                    setShowRewardFormModal(true);
+                  }}
+                  className="shrink-0"
                 >
-                  <div className="p-4 flex-1 flex flex-col items-center text-center gap-2">
-                    <div className="text-5xl">{reward.icon}</div>
-                    <h3 className="font-display font-bold text-gray-900 text-sm line-clamp-2">
-                      {reward.title}
-                    </h3>
-                    <p className="text-gray-600 text-xs line-clamp-2">{reward.description}</p>
-                    <span className="font-display font-bold text-amber-800 text-sm">
-                      🪙 {reward.cost} tokens
-                    </span>
-                    {reward.soldOut && (
-                      <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded">
-                        Sold Out
-                      </span>
-                    )}
-                    <div className="flex gap-2 mt-auto pt-2 w-full">
-                      <Button
-                        variant="secondary"
-                        onClick={() => {
-                          setEditingReward(reward);
-                          setShowRewardFormModal(true);
-                        }}
-                        className="flex-1 text-sm py-2 border-2 border-amber-200 bg-amber-50! text-gray-800! hover:bg-amber-100! hover:border-amber-300!"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        onClick={() => {
-                          setRewardToDelete(reward);
-                          setShowRewardDeleteModal(true);
-                        }}
-                        className="flex-1 text-sm py-2 border-2 border-red-200 bg-red-50! text-gray-800! hover:bg-red-100! hover:border-red-300!"
-                      >
-                        Delete
-                      </Button>
+                  + Add Reward
+                </Button>
+              </div>
+
+              {rewards.length === 0 ? (
+                <p className="text-gray-600 text-center py-8 font-display">
+                  No rewards yet. Add one to get started!
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {rewards.map((reward) => (
+                    <div
+                      key={reward.id}
+                      className="flex flex-col rounded-2xl border-2 border-gray-200 overflow-hidden bg-white shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5"
+                    >
+                      <div className="p-4 flex-1 flex flex-col items-center text-center gap-2">
+                        <div className="text-5xl">{reward.icon}</div>
+                        <h3 className="font-display font-bold text-gray-900 text-sm line-clamp-2">
+                          {reward.title}
+                        </h3>
+                        <p className="text-gray-600 text-xs line-clamp-2">
+                          {reward.description}
+                        </p>
+                        <span className="font-display font-bold text-amber-800 text-sm">
+                          🪙 {reward.cost} tokens
+                        </span>
+                        {reward.soldOut && (
+                          <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded">
+                            Sold Out
+                          </span>
+                        )}
+                        <div className="flex gap-2 mt-auto pt-2 w-full">
+                          <Button
+                            variant="secondary"
+                            onClick={() => {
+                              setEditingReward(reward);
+                              setShowRewardFormModal(true);
+                            }}
+                            className="flex-1 text-sm py-2 border-2 border-amber-200 bg-amber-50! text-gray-800! hover:bg-amber-100! hover:border-amber-300!"
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            onClick={() => {
+                              setRewardToDelete(reward);
+                              setShowRewardDeleteModal(true);
+                            }}
+                            className="flex-1 text-sm py-2 border-2 border-red-200 bg-red-50! text-gray-800! hover:bg-red-100! hover:border-red-300!"
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </Card>
-        </div>
+              )}
+            </Card>
+          </div>
         )}
 
         {activeTab === "requests" && (
-        <div role="tabpanel" id="tabpanel-requests" aria-labelledby="tab-requests" className="space-y-8">
-        {/* Mission Requests */}
-        <Card borderColor="border-blue-500" className="p-8">
-          <h2 className="text-3xl font-bold text-gray-900 font-display mb-6">
-            📋 Mission Requests
-          </h2>
+          <div
+            role="tabpanel"
+            id="tabpanel-requests"
+            aria-labelledby="tab-requests"
+            className="space-y-8"
+          >
+            {/* Mission Requests */}
+            <Card borderColor="border-blue-500" className="p-8">
+              <h2 className="text-3xl font-bold text-gray-900 font-display mb-6">
+                📋 Mission Requests
+              </h2>
 
-          {requestedMissions.length === 0 ? (
-            <p className="text-gray-600 text-center py-8">
-              No mission requests at the moment.
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {requestedMissions.map((mission) => (
-                <div
-                  key={mission.id}
-                  className="border-2 border-gray-200 rounded-2xl p-6 bg-white hover:shadow-md transition-shadow"
-                >
-                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                    <div className="grow">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-gray-900 font-display">
-                          {mission.title}
-                        </h3>
-                        <Badge status={mission.status} />
-                      </div>
-                      <p className="text-gray-700 mb-3">{mission.description}</p>
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="font-bold text-gray-700">Reward:</span>
-                        <TokenDisplay
-                          amount={mission.currentReward}
-                          type="spend"
-                          size="sm"
-                          showLabel={false}
-                        />
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        <span className="font-bold">Requested by:</span>{" "}
-                        {mission.requestedBy
-                          .map((id) => students.find((s) => s.id === id)?.name)
-                          .join(", ")}
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2 min-w-[200px]">
-                      <label className="text-sm font-bold text-gray-700">Assign to:</label>
-                      {mission.requestedBy.map((studentId) => {
-                        const student = students.find((s) => s.id === studentId);
-                        return (
-                          <Button
-                            key={studentId}
-                            variant="primary"
-                            onClick={() => handleAssignMission(mission.id, studentId)}
-                            className="w-full"
-                          >
-                            {student?.name}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-
-        {/* Pending Approvals */}
-        <Card borderColor="border-emerald-500" className="p-8">
-          <h2 className="text-3xl font-bold text-gray-900 font-display mb-6">
-            ✅ Pending Approvals
-          </h2>
-
-          {pendingMissions.length === 0 ? (
-            <p className="text-gray-600 text-center py-8">
-              No missions pending approval.
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {pendingMissions.map((mission) => {
-                const student = students.find((s) => s.id === mission.assignedStudentId);
-                const { spend: spendAmount, grow: growAmount } = getRecommendedSplit(mission.currentReward);
-                return (
-                  <div
-                    key={mission.id}
-                    className="border-2 border-gray-200 rounded-2xl p-6 bg-white hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                      <div className="grow">
-                        <h3 className="text-xl font-bold text-gray-900 font-display mb-2">
-                          {mission.title}
-                        </h3>
-                        <p className="text-gray-700 mb-3">{mission.description}</p>
-                        <div className="space-y-2">
-                          <div className="text-sm">
-                            <span className="font-bold text-gray-700">Student:</span>{" "}
-                            {student?.name}
+              {requestedMissions.length === 0 ? (
+                <p className="text-gray-600 text-center py-8">
+                  No mission requests at the moment.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {requestedMissions.map((mission) => (
+                    <div
+                      key={mission.id}
+                      className="border-2 border-gray-200 rounded-2xl p-6 bg-white hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                        <div className="grow">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-xl font-bold text-gray-900 font-display">
+                              {mission.title}
+                            </h3>
+                            <Badge status={mission.status} />
                           </div>
-                          <div className="text-sm">
-                            <span className="font-bold text-gray-700">Reward Split:</span>{" "}
-                            {spendAmount} Spend + {growAmount} Grow tokens
+                          <p className="text-gray-700 mb-3">
+                            {mission.description}
+                          </p>
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="font-bold text-gray-700">
+                              Reward:
+                            </span>
+                            <TokenDisplay
+                              amount={mission.currentReward}
+                              type="spend"
+                              size="sm"
+                              showLabel={false}
+                            />
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <span className="font-bold">Requested by:</span>{" "}
+                            {mission.requestedBy
+                              .map(
+                                (id) => students.find((s) => s.id === id)?.name,
+                              )
+                              .join(", ")}
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2 min-w-[200px]">
+                          <label className="text-sm font-bold text-gray-700">
+                            Assign to:
+                          </label>
+                          {mission.requestedBy.map((studentId) => {
+                            const student = students.find(
+                              (s) => s.id === studentId,
+                            );
+                            return (
+                              <Button
+                                key={studentId}
+                                variant="primary"
+                                onClick={() =>
+                                  handleAssignMission(mission.id, studentId)
+                                }
+                                className="w-full"
+                              >
+                                {student?.name}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            {/* Pending Approvals */}
+            <Card borderColor="border-emerald-500" className="p-8">
+              <h2 className="text-3xl font-bold text-gray-900 font-display mb-6">
+                ✅ Pending Approvals
+              </h2>
+
+              {pendingMissions.length === 0 ? (
+                <p className="text-gray-600 text-center py-8">
+                  No missions pending approval.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {pendingMissions.map((mission) => {
+                    const student = students.find(
+                      (s) => s.id === mission.assignedStudentId,
+                    );
+                    const { spend: spendAmount, grow: growAmount } =
+                      getRecommendedSplit(mission.currentReward);
+                    return (
+                      <div
+                        key={mission.id}
+                        className="border-2 border-gray-200 rounded-2xl p-6 bg-white hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                          <div className="grow">
+                            <h3 className="text-xl font-bold text-gray-900 font-display mb-2">
+                              {mission.title}
+                            </h3>
+                            <p className="text-gray-700 mb-3">
+                              {mission.description}
+                            </p>
+                            <div className="space-y-2">
+                              <div className="text-sm">
+                                <span className="font-bold text-gray-700">
+                                  Student:
+                                </span>{" "}
+                                {student?.name}
+                              </div>
+                              <div className="text-sm">
+                                <span className="font-bold text-gray-700">
+                                  Reward Split:
+                                </span>{" "}
+                                {spendAmount} Spend + {growAmount} Grow tokens
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            <Button
+                              variant="success"
+                              onClick={() => handleApproveMission(mission.id)}
+                            >
+                              Approve & Award Tokens
+                            </Button>
                           </div>
                         </div>
                       </div>
-                      <div>
-                        <Button
-                          variant="success"
-                          onClick={() => handleApproveMission(mission.id)}
-                        >
-                          Approve & Award Tokens
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
-        </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          </div>
         )}
 
         {activeTab === "students" && (
-        <div role="tabpanel" id="tabpanel-students" aria-labelledby="tab-students" className="space-y-8">
-        {/* Student Overview */}
-        <Card borderColor="border-purple-500" className="p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h2 className="text-3xl font-bold text-gray-900 font-display">
-              👥 Student Overview
-            </h2>
-            <Button
-              variant="primary"
-              onClick={() => setShowStudentFormModal(true)}
-              className="shrink-0"
-            >
-              + Add Student
-            </Button>
-          </div>
+          <div
+            role="tabpanel"
+            id="tabpanel-students"
+            aria-labelledby="tab-students"
+            className="space-y-8"
+          >
+            {/* Student Overview */}
+            <Card borderColor="border-purple-500" className="p-8">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h2 className="text-3xl font-bold text-gray-900 font-display">
+                  👥 Student Overview
+                </h2>
+                <Button
+                  variant="primary"
+                  onClick={() => setShowStudentFormModal(true)}
+                  className="shrink-0"
+                >
+                  + Add Student
+                </Button>
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {students.map((student) => {
-              const studentMissions = missions.filter((m) => m.assignedStudentId === student.id);
-              const completedCount = studentMissions.filter((m) => m.status === "COMPLETED").length;
-              const purchasedRewardItems = rewards.filter((r) =>
-                student.purchasedRewards.includes(r.id)
-              );
-              return (
-                <Card key={student.id} borderColor="border-gray-300" className="p-6 hover:shadow-lg transition-shadow">
-                  <div className="text-center mb-4">
-                    <div className="flex justify-center mb-2">
-                      <StudentAvatar
-                        studentId={student.id}
-                        studentName={student.name}
-                        size="md"
-                      />
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 font-display">
-                      {student.name}
-                    </h3>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-bold text-gray-700">Spend:</span>
-                      <TokenDisplay
-                        amount={student.spendTokens}
-                        type="spend"
-                        size="sm"
-                        showLabel={false}
-                      />
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-bold text-gray-700">Grow:</span>
-                      <TokenDisplay
-                        amount={student.growTokens}
-                        type="grow"
-                        size="sm"
-                        showLabel={false}
-                      />
-                    </div>
-                    <div className="pt-3 border-t-2 border-gray-200">
-                      <div className="text-sm text-gray-600 mb-2">
-                        <span className="font-bold">Missions:</span> {completedCount} completed
-                      </div>
-                      <div>
-                        <div className="text-sm font-bold text-gray-700 mb-1">
-                          Purchases ({student.purchasedRewards.length}):
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {students.map((student) => {
+                  const studentMissions = missions.filter(
+                    (m) => m.assignedStudentId === student.id,
+                  );
+                  const completedCount = studentMissions.filter(
+                    (m) => m.status === "COMPLETED",
+                  ).length;
+                  const purchasedRewardItems = rewards.filter((r) =>
+                    student.purchasedRewards.includes(r.id),
+                  );
+                  return (
+                    <Card
+                      key={student.id}
+                      borderColor="border-gray-300"
+                      className="p-6 hover:shadow-lg transition-shadow"
+                    >
+                      <div className="text-center mb-4">
+                        <div className="flex justify-center mb-2">
+                          <StudentAvatar
+                            studentId={student.id}
+                            studentName={student.name}
+                            size="md"
+                          />
                         </div>
-                        {purchasedRewardItems.length === 0 ? (
-                          <p className="text-xs text-gray-500">None yet</p>
-                        ) : (
-                          <div className="flex flex-wrap gap-2">
-                            {purchasedRewardItems.map((reward) => (
-                              <span
-                                key={reward.id}
-                                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-xs font-bold text-gray-800"
-                              >
-                                <span>{reward.icon}</span>
-                                <span>{reward.title}</span>
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        <h3 className="text-2xl font-bold text-gray-900 font-display">
+                          {student.name}
+                        </h3>
                       </div>
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-bold text-gray-700">
+                            Spend:
+                          </span>
+                          <TokenDisplay
+                            amount={student.spendTokens}
+                            type="spend"
+                            size="sm"
+                            showLabel={false}
+                          />
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-bold text-gray-700">
+                            Grow:
+                          </span>
+                          <TokenDisplay
+                            amount={student.growTokens}
+                            type="grow"
+                            size="sm"
+                            showLabel={false}
+                          />
+                        </div>
+                        <div className="pt-3 border-t-2 border-gray-200">
+                          <div className="text-sm text-gray-600 mb-2">
+                            <span className="font-bold">Missions:</span>{" "}
+                            {completedCount} completed
+                          </div>
+                          <div>
+                            <div className="text-sm font-bold text-gray-700 mb-1">
+                              Purchases ({student.purchasedRewards.length}):
+                            </div>
+                            {purchasedRewardItems.length === 0 ? (
+                              <p className="text-xs text-gray-500">None yet</p>
+                            ) : (
+                              <div className="flex flex-wrap gap-2">
+                                {purchasedRewardItems.map((reward) => (
+                                  <span
+                                    key={reward.id}
+                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-xs font-bold text-gray-800"
+                                  >
+                                    <span>{reward.icon}</span>
+                                    <span>{reward.title}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </Card>
           </div>
-        </Card>
-        </div>
         )}
       </main>
 

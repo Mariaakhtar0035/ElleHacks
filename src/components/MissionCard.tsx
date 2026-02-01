@@ -77,20 +77,30 @@ export function MissionCard({
 }: MissionCardProps) {
   const isMarketplace = variant === "marketplace";
   const isTeacher = variant === "teacher";
-  const alreadyRequested = isMarketplace && studentId ? mission.requestedBy.includes(studentId) : false;
+  const alreadyRequested =
+    isMarketplace && studentId
+      ? mission.requestedBy.includes(studentId)
+      : false;
   const isPopular = mission.requestCount > 2;
   const isHighDemand = mission.requestCount > 1 && mission.requestCount <= 2;
 
-  const rawKey = mission.bandColor ?? BAND_COLORS[getBandColorIndex(mission.id)];
-  const bandColorKey = rawKey in BAND_CLASSES ? rawKey : BAND_COLORS[getBandColorIndex(mission.id)];
-  const bandClasses = BAND_CLASSES[bandColorKey as (typeof BAND_COLORS)[number]];
+  const rawKey =
+    mission.bandColor ?? BAND_COLORS[getBandColorIndex(mission.id)];
+  const bandColorKey =
+    rawKey in BAND_CLASSES
+      ? rawKey
+      : BAND_COLORS[getBandColorIndex(mission.id)];
+  const bandClasses =
+    BAND_CLASSES[bandColorKey as (typeof BAND_COLORS)[number]];
 
   const displayStatus = statusProp ?? mission.status;
   const showStatusBadge = !isMarketplace || isTeacher;
 
   const assignedStudentName =
     assignedStudentNameProp ??
-    (mission.assignedStudentId ? getStudent(mission.assignedStudentId)?.name : undefined);
+    (mission.assignedStudentId
+      ? getStudent(mission.assignedStudentId)?.name
+      : undefined);
   const requestedByNames = mission.requestedBy
     .map((id) => getStudent(id)?.name)
     .filter((n): n is string => !!n);
@@ -115,7 +125,7 @@ export function MissionCard({
           <div className="text-center font-bold uppercase text-base tracking-wide mt-0.5 leading-tight">
             {mission.title}
           </div>
-          {(isMarketplace && (isPopular || isHighDemand)) && (
+          {isMarketplace && (isPopular || isHighDemand) && (
             <div className="flex justify-center gap-2 mt-2">
               {isPopular && (
                 <span className="text-xs font-bold uppercase px-2 py-0.5 border border-black bg-white">
@@ -140,7 +150,9 @@ export function MissionCard({
         <div className="flex-1 flex flex-col min-h-0 p-4 border-b border-black">
           <div className="flex justify-between items-start gap-4 text-sm mb-2">
             <span className="uppercase font-bold shrink-0">Description</span>
-            <span className="text-right font-normal">{mission.description}</span>
+            <span className="text-right font-normal">
+              {mission.description}
+            </span>
           </div>
 
           {(isTeacher || assignedStudentName || mission.requestCount > 0) && (
@@ -150,15 +162,19 @@ export function MissionCard({
               </span>
               <span className="text-right font-normal">
                 {assignedStudentName ? (
-                  variant === "myMission" && mission.assignedStudentId === studentId
-                    ? "You"
-                    : assignedStudentName
+                  variant === "myMission" &&
+                  mission.assignedStudentId === studentId ? (
+                    "You"
+                  ) : (
+                    assignedStudentName
+                  )
                 ) : isTeacher ? (
                   "—"
                 ) : (
                   <>
                     {mission.requestCount}{" "}
-                    {mission.requestCount === 1 ? "student" : "students"} requested
+                    {mission.requestCount === 1 ? "student" : "students"}{" "}
+                    requested
                     {requestedByNames.length > 0 &&
                       ` (${requestedByNames.slice(0, 3).join(", ")}${requestedByNames.length > 3 ? ` +${requestedByNames.length - 3}` : ""})`}
                   </>
@@ -229,7 +245,7 @@ export function MissionCard({
                 onClick={() => onAssign(mission)}
                 className="flex-1 text-sm py-2 rounded-none shadow-none border-2 border-sky-200 bg-sky-50! text-gray-800! hover:bg-sky-100! hover:border-sky-300!"
               >
-                Assign
+                {displayStatus === "COMPLETED" ? "Reset" : "Assign"}
               </Button>
             </div>
           )}
@@ -246,15 +262,18 @@ export function MissionCard({
           {!isMarketplace && !isTeacher && actionHint && (
             <p className="text-xs font-medium uppercase mt-2">{actionHint}</p>
           )}
-          {!isMarketplace && !isTeacher && displayStatus === "COMPLETED" && onExplainRewardSplit && (
-            <button
-              type="button"
-              onClick={() => onExplainRewardSplit(mission)}
-              className="text-xs font-bold uppercase mt-2 underline"
-            >
-              Why did I get this split?
-            </button>
-          )}
+          {!isMarketplace &&
+            !isTeacher &&
+            displayStatus === "COMPLETED" &&
+            onExplainRewardSplit && (
+              <button
+                type="button"
+                onClick={() => onExplainRewardSplit(mission)}
+                className="text-xs font-bold uppercase mt-2 underline"
+              >
+                Why did I get this split?
+              </button>
+            )}
         </div>
       </div>
     </div>
