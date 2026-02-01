@@ -55,13 +55,18 @@ export default function HomePage() {
       <section className="relative px-4 pt-14 pb-20 md:pt-24 md:pb-28 overflow-hidden">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-14">
           <div className="text-center md:text-left md:max-w-xl">
-            <h1 className="font-display font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-gray-900 mb-5 md:mb-6 leading-tight tracking-tight">
+            <h1 className="font-display font-bold text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-gray-900 mb-5 md:mb-6 leading-tight tracking-tight">
               Welcome to{" "}
               <span className="text-transparent bg-clip-text bg-linear-to-r from-amber-500 via-orange-500 to-rose-500">
-                Classroomopoly!
+                Finity!
+              </span>
+              <span className="inline-flex items-center gap-4 ml-4">
+                <span className="dice-bounce text-5xl md:text-6xl opacity-90" aria-hidden>🎲</span>
+                <span className="token-spin-hover text-5xl md:text-6xl" aria-hidden>🪙</span>
+                <span className="dice-bounce text-5xl md:text-6xl opacity-80" aria-hidden style={{ animationDelay: "0.5s" }}>🏠</span>
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 mb-8 font-medium leading-relaxed max-w-md">
+            <p className="text-xl md:text-2xl text-gray-600 mb-8 font-medium leading-relaxed max-w-md">
               Complete missions, earn tokens, and watch your money grow!
             </p>
             <Button
@@ -72,16 +77,12 @@ export default function HomePage() {
               Join the Game
             </Button>
           </div>
-          <div className="flex justify-center items-center gap-8 md:gap-10">
-            <div className="dice-bounce text-5xl md:text-6xl opacity-90" aria-hidden>
-              🎲
-            </div>
-            <div className="token-spin-hover text-5xl md:text-6xl" aria-hidden>
-              🪙
-            </div>
-            <div className="dice-bounce text-5xl md:text-6xl opacity-80" aria-hidden style={{ animationDelay: "0.5s" }}>
-              🏠
-            </div>
+          <div className="flex justify-center items-center">
+            <img 
+              src="/hero-placeholder.png" 
+              alt="Finity hero illustration" 
+              className="w-64 h-64 object-cover"
+            />
           </div>
         </div>
       </section>
@@ -224,7 +225,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-gray-700 font-display font-bold">
             <span className="text-2xl">🃏</span>
-            <span>Classroomopoly</span>
+            <span>Finity</span>
           </div>
           <div className="flex items-center gap-4">
             <Link

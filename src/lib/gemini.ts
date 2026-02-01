@@ -81,6 +81,38 @@ const SAFETY_SETTINGS = [
   { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" },
 ];
 
+let chatInFlightCount = 0;
+let chatDoneResolver: (() => void) | null = null;
+
+function waitForChatToFinish(): Promise<void> {
+  if (chatInFlightCount === 0) return Promise.resolve();
+  if (!chatDoneResolver) {
+    return new Promise((resolve) => {
+      chatDoneResolver = resolve;
+    });
+  }
+  return new Promise((resolve) => {
+    const existingResolver = chatDoneResolver;
+    chatDoneResolver = () => {
+      existingResolver?.();
+      resolve();
+    };
+  });
+}
+
+function beginChatCall() {
+  chatInFlightCount += 1;
+}
+
+function endChatCall() {
+  chatInFlightCount = Math.max(0, chatInFlightCount - 1);
+  if (chatInFlightCount === 0 && chatDoneResolver) {
+    const resolve = chatDoneResolver;
+    chatDoneResolver = null;
+    resolve();
+  }
+}
+
 async function callGeminiAPI(
   prompt: string,
   maxOutputTokens = 100,
@@ -152,6 +184,7 @@ export async function generateExplanation(
   context: any
 ): Promise<string> {
   try {
+    await waitForChatToFinish();
     // Check if API key exists
     if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === "your_api_key_here") {
       if (type === "NARRATOR" && context.page) {
@@ -275,6 +308,7 @@ export async function askNarrator(
       return buildContextualFallback(context ?? null, studentName);
     }
 
+    beginChatCall();
     const contextBlock = buildAskNarratorContextString(context ?? null);
     const conversationBlock = buildRecentConversationBlock(recentMessages || []);
 
@@ -305,5 +339,7 @@ Respond now—be specific, use their numbers, and vary your phrasing from any pr
   } catch (error) {
     console.error("Gemini ask error:", error);
     return buildContextualFallback(context ?? null, studentName);
+  } finally {
+    endChatCall();
   }
 }
