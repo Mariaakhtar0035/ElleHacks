@@ -63,6 +63,7 @@ export default function GrowTokensPage() {
                 type="grow"
                 size="lg"
                 showLabel={false}
+                centered
               />
             </div>
             <div className="mt-4 text-sm text-gray-600">
@@ -92,6 +93,7 @@ export default function GrowTokensPage() {
                 type="grow"
                 size="lg"
                 showLabel={false}
+                centered
               />
             </div>
             <div className="mt-4 text-sm text-gray-600">
@@ -122,6 +124,7 @@ export default function GrowTokensPage() {
                 type="grow"
                 size="lg"
                 showLabel={false}
+                centered
               />
             </div>
             <div className="mt-4 text-sm text-gray-600">

@@ -7,6 +7,8 @@ interface TokenDisplayProps {
   showLabel?: boolean;
   animate?: boolean;
   showLock?: boolean;
+  /** When true, stack circle on top of amount, both centered */
+  centered?: boolean;
 }
 
 export function TokenDisplay({
@@ -16,6 +18,7 @@ export function TokenDisplay({
   showLabel = true,
   animate = false,
   showLock = type === "grow",
+  centered = false,
 }: TokenDisplayProps) {
   const sizeConfig = {
     sm: { chip: "w-10 h-10", text: "text-lg", icon: "text-base" },
@@ -28,10 +31,8 @@ export function TokenDisplay({
   const isSpend = type === "spend";
   const isSave = type === "save";
 
-  return (
-    <div className={`flex items-center gap-3 ${animate ? "coin-animation" : ""}`}>
-      {/* Coin/Chip visual */}
-      <div
+  const circleEl = (
+    <div
         className={`relative ${config.chip} rounded-full flex items-center justify-center shadow-lg
           ${isSpend 
             ? "bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 border-2 border-amber-700/50 ring-2 ring-amber-200/50" 
@@ -53,21 +54,38 @@ export function TokenDisplay({
           </span>
         )}
       </div>
+  );
 
-      <div className="flex flex-col">
-        <span
-          className={`font-display font-bold ${config.text} ${
-            isSpend ? "text-amber-800" : isSave ? "text-sky-800" : "text-blue-800"
-          }`}
-        >
-          {amount}
+  const amountEl = (
+    <div className="flex flex-col">
+      <span
+        className={`font-display font-bold ${config.text} ${
+          isSpend ? "text-amber-800" : isSave ? "text-sky-800" : "text-blue-800"
+        }`}
+      >
+        {amount}
+      </span>
+      {showLabel && (
+        <span className="text-sm text-gray-600 font-medium">
+          {type === "spend" ? "Spend" : type === "save" ? "Save" : "Grow"} Tokens
         </span>
-        {showLabel && (
-          <span className="text-sm text-gray-600 font-medium">
-            {type === "spend" ? "Spend" : type === "save" ? "Save" : "Grow"} Tokens
-          </span>
-        )}
+      )}
+    </div>
+  );
+
+  if (centered) {
+    return (
+      <div className={`flex flex-col items-center gap-3 ${animate ? "coin-animation" : ""}`}>
+        {circleEl}
+        {amountEl}
       </div>
+    );
+  }
+
+  return (
+    <div className={`flex items-center gap-3 ${animate ? "coin-animation" : ""}`}>
+      {circleEl}
+      {amountEl}
     </div>
   );
 }
