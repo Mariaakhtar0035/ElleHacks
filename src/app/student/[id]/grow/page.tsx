@@ -54,12 +54,15 @@ export default function GrowTokensPage() {
             <h3 className="font-display font-bold text-xl text-gray-900 mb-2">
               In 1 Month
             </h3>
-            <TokenDisplay
-              amount={projections.oneMonth}
-              type="grow"
-              size="lg"
-              showLabel={false}
-            />
+            <div className="flex justify-center">
+              <TokenDisplay
+                amount={projections.oneMonth}
+                type="grow"
+                size="lg"
+                showLabel={false}
+                centered
+              />
+            </div>
             <div className="mt-4 text-sm text-gray-600">
               <span className="font-bold text-emerald-600">
                 +{getGrowthPercentage(student.growTokens, projections.oneMonth)}%
@@ -76,12 +79,15 @@ export default function GrowTokensPage() {
             <h3 className="font-display font-bold text-xl text-gray-900 mb-2">
               In 6 Months
             </h3>
-            <TokenDisplay
-              amount={projections.sixMonths}
-              type="grow"
-              size="lg"
-              showLabel={false}
-            />
+            <div className="flex justify-center">
+              <TokenDisplay
+                amount={projections.sixMonths}
+                type="grow"
+                size="lg"
+                showLabel={false}
+                centered
+              />
+            </div>
             <div className="mt-4 text-sm text-gray-600">
               <span className="font-bold text-blue-600">
                 +{getGrowthPercentage(student.growTokens, projections.sixMonths)}%
@@ -98,12 +104,15 @@ export default function GrowTokensPage() {
             <h3 className="font-display font-bold text-xl text-gray-900 mb-2">
               In 1 Year
             </h3>
-            <TokenDisplay
-              amount={projections.oneYear}
-              type="grow"
-              size="lg"
-              showLabel={false}
-            />
+            <div className="flex justify-center">
+              <TokenDisplay
+                amount={projections.oneYear}
+                type="grow"
+                size="lg"
+                showLabel={false}
+                centered
+              />
+            </div>
             <div className="mt-4 text-sm text-gray-600">
               <span className="font-bold text-purple-600">
                 +{getGrowthPercentage(student.growTokens, projections.oneYear)}%
