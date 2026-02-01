@@ -48,7 +48,7 @@ export default function SaveTokensPage() {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="font-display font-bold text-4xl text-gray-900 mb-2">
-          💰 Save Tokens
+          Save Tokens
         </h1>
         <p className="text-xl text-gray-700">
           Saving helps you reach goals a little at a time.

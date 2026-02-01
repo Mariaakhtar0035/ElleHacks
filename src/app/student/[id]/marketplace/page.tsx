@@ -117,7 +117,7 @@ export default function MarketplacePage() {
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="font-display font-bold text-4xl text-gray-900 mb-2">
-          🏪 Mission Marketplace
+          Mission Marketplace
         </h1>
         <p className="text-xl text-gray-700">
           Request missions to earn tokens!

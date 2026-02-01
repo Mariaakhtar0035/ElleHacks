@@ -73,7 +73,7 @@ export default function MyMissionsPage() {
       )}
       <div className="text-center">
         <h1 className="font-display font-bold text-4xl text-gray-900 mb-2">
-          📋 My Missions
+          My Missions
         </h1>
         <p className="text-xl text-gray-700">
           Track your assigned missions
