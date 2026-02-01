@@ -15,8 +15,21 @@ export default function StudentLeaderboardPage() {
       if (isAutoRefresh) {
         setRefreshing(true);
       }
-      const res = await fetch("/api/teacher/leaderboard");
+      const timestamp = Date.now();
+      const res = await fetch(`/api/teacher/leaderboard?t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
       const data = await res.json();
+      
+      // Log for debugging
+      console.log('[Student Leaderboard] Fetched data:', {
+        missionCount: data.missions?.length,
+        totalRequests: data.missions?.reduce((sum: number, m: any) => sum + m.requestCount, 0),
+      });
+      
       setMissions(data.missions || []);
       setLastUpdate(new Date());
     } catch (error) {
@@ -65,7 +78,10 @@ export default function StudentLeaderboardPage() {
           Refresh now
         </button>
       </div>
-      <MarketLeaderboard missions={missions} />
+      <MarketLeaderboard 
+        missions={missions} 
+        key={lastUpdate.getTime()}
+      />
     </div>
   );
 }

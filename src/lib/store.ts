@@ -508,7 +508,17 @@ export function requestMission(studentId: string, missionId: string): Mission | 
   mission.currentReward = calculateReward(mission.baseReward, mission.requestCount);
   mission.status = "REQUESTED";
   
-  return updateMission(missionId, mission);
+  // Update the mission in the array
+  const updated = updateMission(missionId, mission);
+  
+  // Log for debugging
+  console.log(`[requestMission] Updated mission ${missionId}:`, {
+    requestCount: updated?.requestCount,
+    currentReward: updated?.currentReward,
+    requestedBy: updated?.requestedBy.length,
+  });
+  
+  return updated;
 }
 
 export function assignMission(missionId: string, studentId: string): Mission | null {

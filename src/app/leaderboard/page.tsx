@@ -18,8 +18,21 @@ export default function LeaderboardPage() {
       if (isAutoRefresh) {
         setRefreshing(true);
       }
-      const res = await fetch("/api/teacher/leaderboard");
+      const timestamp = Date.now();
+      const res = await fetch(`/api/teacher/leaderboard?t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
       const data = await res.json();
+      
+      // Log for debugging
+      console.log('[Leaderboard] Fetched data:', {
+        missionCount: data.missions?.length,
+        totalRequests: data.missions?.reduce((sum: number, m: any) => sum + m.requestCount, 0),
+      });
+      
       setMissions(data.missions || []);
       setLastUpdate(new Date());
     } catch (error) {
@@ -93,7 +106,10 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Leaderboard Component */}
-        <MarketLeaderboard missions={missions} />
+        <MarketLeaderboard 
+          missions={missions} 
+          key={lastUpdate.getTime()}
+        />
 
         {/* Mobile Back Button */}
         <div className="mt-6 md:hidden">

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Mission } from "@/types";
 import { Card } from "@/components/ui/Card";
 
@@ -15,35 +15,46 @@ interface MarketLeaderboardProps {
 }
 
 export function MarketLeaderboard({ missions }: MarketLeaderboardProps) {
-  // Calculate statistics for each mission
-  const missionStats: MissionStats[] = missions.map((mission) => {
-    const priceChange = mission.baseReward - mission.currentReward;
-    const priceDropPercent =
-      mission.baseReward > 0 ? (priceChange / mission.baseReward) * 100 : 0;
+  // Use useMemo to recalculate when missions prop changes
+  const missionStats: MissionStats[] = useMemo(() => {
+    return missions.map((mission) => {
+      const priceChange = mission.baseReward - mission.currentReward;
+      const priceDropPercent =
+        mission.baseReward > 0 ? (priceChange / mission.baseReward) * 100 : 0;
 
-    return {
-      mission,
-      priceDropPercent,
-      priceChange,
-    };
-  });
+      return {
+        mission,
+        priceDropPercent,
+        priceChange,
+      };
+    });
+  }, [missions]);
 
   // Sort by request count (most requested first)
-  const sortedByDemand = [...missionStats].sort(
-    (a, b) => b.mission.requestCount - a.mission.requestCount,
-  );
+  const sortedByDemand = useMemo(() => {
+    return [...missionStats].sort(
+      (a, b) => b.mission.requestCount - a.mission.requestCount,
+    );
+  }, [missionStats]);
 
   // Sort by biggest price drop
-  const sortedByDrop = [...missionStats].sort(
-    (a, b) => b.priceDropPercent - a.priceDropPercent,
-  );
+  const sortedByDrop = useMemo(() => {
+    return [...missionStats].sort(
+      (a, b) => b.priceDropPercent - a.priceDropPercent,
+    );
+  }, [missionStats]);
 
   // Calculate market statistics
-  const totalMissions = missions.length;
-  const totalRequests = missions.reduce((sum, m) => sum + m.requestCount, 0);
-  const avgRequestsPerMission =
-    totalMissions > 0 ? totalRequests / totalMissions : 0;
-  const mostRequestedMission = sortedByDemand[0]?.mission;
+  const { totalMissions, requestedMissions, totalRequests, avgRequestsPerMission, mostRequestedMission } = useMemo(() => {
+    const totalMissions = missions.length;
+    const requestedMissions = missions.filter(m => m.requestCount > 0).length;
+    const totalRequests = missions.reduce((sum, m) => sum + m.requestCount, 0);
+    const avgRequestsPerMission =
+      requestedMissions > 0 ? totalRequests / requestedMissions : 0;
+    const mostRequestedMission = sortedByDemand[0]?.mission;
+
+    return { totalMissions, requestedMissions, totalRequests, avgRequestsPerMission, mostRequestedMission };
+  }, [missions, sortedByDemand]);
 
   return (
     <div className="space-y-6">
@@ -54,9 +65,9 @@ export function MarketLeaderboard({ missions }: MarketLeaderboardProps) {
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-lg shadow-sm">
-            <p className="text-sm text-gray-600">Total Missions</p>
+            <p className="text-sm text-gray-600">Requested Missions</p>
             <p className="text-2xl font-bold text-purple-700">
-              {totalMissions}
+              {requestedMissions}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm">

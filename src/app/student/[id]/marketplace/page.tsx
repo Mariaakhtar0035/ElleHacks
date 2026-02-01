@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { MissionCard } from "@/components/MissionCard";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { SuccessSparkle } from "@/components/SuccessSparkle";
-import { getAvailableMissions, requestMission, getStudent } from "@/lib/store";
+import { getStudent } from "@/lib/store";
 import type { Mission } from "@/types";
 
 const SUPPLY_DEMAND_FALLBACK =
@@ -16,58 +16,114 @@ const SUPPLY_DEMAND_FALLBACK =
 export default function MarketplacePage() {
   const params = useParams();
   const studentId = params.id as string;
-  const [missions, setMissions] = useState(getAvailableMissions());
+  const [missions, setMissions] = useState<Mission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [rewardAdjusted, setRewardAdjusted] = useState(false);
-  const [supplyDemandExplanation, setSupplyDemandExplanation] = useState<string | null>(null);
+  const [supplyDemandExplanation, setSupplyDemandExplanation] = useState<
+    string | null
+  >(null);
   const [loadingSupplyDemand, setLoadingSupplyDemand] = useState(false);
   const [showSparkle, setShowSparkle] = useState(false);
 
   // Pre-request "Why less?" modal (when student clicks before requesting)
-  const [priceDropModalMission, setPriceDropModalMission] = useState<Mission | null>(null);
-  const [priceDropExplanation, setPriceDropExplanation] = useState<string | null>(null);
-  const [loadingPriceDropExplanation, setLoadingPriceDropExplanation] = useState(false);
+  const [priceDropModalMission, setPriceDropModalMission] =
+    useState<Mission | null>(null);
+  const [priceDropExplanation, setPriceDropExplanation] = useState<
+    string | null
+  >(null);
+  const [loadingPriceDropExplanation, setLoadingPriceDropExplanation] =
+    useState(false);
 
-  const handleRequestMission = (missionId: string) => {
-    const result = requestMission(studentId, missionId);
-
-    if (result) {
-      setShowSparkle(true);
-      setMissions(getAvailableMissions());
-      const adjusted = result.currentReward !== result.baseReward || result.requestCount > 1;
-      setRewardAdjusted(adjusted);
-      setSupplyDemandExplanation(null);
-
-      setModalMessage(
-        adjusted
-          ? `Mission requested! Reward adjusted to ${result.currentReward} tokens.`
-          : `Mission requested! You'll get ${result.currentReward} tokens when your teacher assigns and approves this mission.`
-      );
-      setShowModal(true);
-
-      if (adjusted) {
-        const studentName = getStudent(studentId)?.name ?? "Student";
-        setLoadingSupplyDemand(true);
-        fetch("/api/gemini/explain", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "SUPPLY_DEMAND",
-            studentName,
-            context: {
-              baseReward: result.baseReward,
-              currentReward: result.currentReward,
-              requestCount: result.requestCount,
-            },
-          }),
-        })
-          .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Failed"))))
-          .then((data) => setSupplyDemandExplanation(data.explanation ?? SUPPLY_DEMAND_FALLBACK))
-          .catch(() => setSupplyDemandExplanation(SUPPLY_DEMAND_FALLBACK))
-          .finally(() => setLoadingSupplyDemand(false));
+  const fetchMarketplaceMissions = async (isAutoRefresh = false) => {
+    try {
+      if (isAutoRefresh) {
+        setRefreshing(true);
       }
-    } else {
+      const res = await fetch("/api/student/marketplace");
+      const data = await res.json();
+      setMissions(data.missions || []);
+      setLastUpdate(new Date());
+    } catch (error) {
+      console.error("Failed to fetch marketplace missions:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMarketplaceMissions();
+
+    const interval = setInterval(() => {
+      fetchMarketplaceMissions(true);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleRequestMission = async (missionId: string) => {
+    try {
+      const res = await fetch("/api/student/marketplace", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId, missionId }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Request failed");
+      }
+
+      const data = await res.json();
+      const result: Mission | undefined = data?.mission;
+
+      if (result) {
+        setShowSparkle(true);
+        setMissions(data.missions || []);
+        const adjusted =
+          result.currentReward !== result.baseReward || result.requestCount > 1;
+        setRewardAdjusted(adjusted);
+        setSupplyDemandExplanation(null);
+
+        setModalMessage(
+          adjusted
+            ? `Mission requested! Reward adjusted to ${result.currentReward} tokens.`
+            : `Mission requested! You'll get ${result.currentReward} tokens when your teacher assigns and approves this mission.`,
+        );
+        setShowModal(true);
+
+        if (adjusted) {
+          const studentName = getStudent(studentId)?.name ?? "Student";
+          setLoadingSupplyDemand(true);
+          fetch("/api/gemini/explain", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "SUPPLY_DEMAND",
+              studentName,
+              context: {
+                baseReward: result.baseReward,
+                currentReward: result.currentReward,
+                requestCount: result.requestCount,
+              },
+            }),
+          })
+            .then((res) =>
+              res.ok ? res.json() : Promise.reject(new Error("Failed")),
+            )
+            .then((data) =>
+              setSupplyDemandExplanation(
+                data.explanation ?? SUPPLY_DEMAND_FALLBACK,
+              ),
+            )
+            .catch(() => setSupplyDemandExplanation(SUPPLY_DEMAND_FALLBACK))
+            .finally(() => setLoadingSupplyDemand(false));
+        }
+      }
+    } catch (error) {
       setRewardAdjusted(false);
       setSupplyDemandExplanation(null);
       setModalMessage("You've already requested this mission!");
@@ -99,8 +155,12 @@ export default function MarketplacePage() {
         },
       }),
     })
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Failed"))))
-      .then((data) => setPriceDropExplanation(data.explanation ?? SUPPLY_DEMAND_FALLBACK))
+      .then((res) =>
+        res.ok ? res.json() : Promise.reject(new Error("Failed")),
+      )
+      .then((data) =>
+        setPriceDropExplanation(data.explanation ?? SUPPLY_DEMAND_FALLBACK),
+      )
       .catch(() => setPriceDropExplanation(SUPPLY_DEMAND_FALLBACK))
       .finally(() => setLoadingPriceDropExplanation(false));
   };
@@ -111,7 +171,7 @@ export default function MarketplacePage() {
     setLoadingPriceDropExplanation(false);
   };
 
-  const availableMissions = missions.filter(m => !m.assignedStudentId);
+  const availableMissions = missions.filter((m) => !m.assignedStudentId);
 
   return (
     <div className="space-y-8">
@@ -122,9 +182,24 @@ export default function MarketplacePage() {
         <p className="text-xl text-gray-700">
           Request missions to earn tokens!
         </p>
+        <div className="flex items-center justify-center gap-2 mt-2">
+          <div
+            className={`w-2 h-2 rounded-full ${refreshing ? "bg-green-500 animate-pulse" : "bg-gray-400"}`}
+          ></div>
+          <p className="text-sm text-gray-500">
+            {refreshing
+              ? "Updating..."
+              : `Last updated: ${lastUpdate.toLocaleTimeString()}`}
+          </p>
+        </div>
       </div>
 
-      {availableMissions.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading market missions...</p>
+        </div>
+      ) : availableMissions.length === 0 ? (
         <EmptyState
           emoji="🎲"
           title="No missions yet! Check back soon"
@@ -144,7 +219,10 @@ export default function MarketplacePage() {
         </div>
       )}
 
-      <SuccessSparkle show={showSparkle} onComplete={() => setShowSparkle(false)} />
+      <SuccessSparkle
+        show={showSparkle}
+        onComplete={() => setShowSparkle(false)}
+      />
 
       <Modal isOpen={showModal} onClose={closeModal} title="Mission Request">
         <p className="text-lg text-gray-700 mb-4">{modalMessage}</p>
@@ -152,7 +230,9 @@ export default function MarketplacePage() {
           <div className="mb-6">
             {loadingSupplyDemand ? (
               <div className="h-12 bg-gray-100 rounded-xl animate-pulse flex items-center justify-center">
-                <span className="text-sm text-gray-500">Loading explanation...</span>
+                <span className="text-sm text-gray-500">
+                  Loading explanation...
+                </span>
               </div>
             ) : supplyDemandExplanation ? (
               <p className="text-gray-700 font-medium border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/80 rounded-r-xl">
@@ -173,7 +253,9 @@ export default function MarketplacePage() {
       >
         {loadingPriceDropExplanation ? (
           <div className="h-12 bg-gray-100 rounded-xl animate-pulse flex items-center justify-center mb-6">
-            <span className="text-sm text-gray-500">Mrs. Pennyworth is thinking…</span>
+            <span className="text-sm text-gray-500">
+              Mrs. Pennyworth is thinking…
+            </span>
           </div>
         ) : priceDropExplanation ? (
           <p className="text-lg text-gray-700 mb-6 border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/80 rounded-r-xl">
