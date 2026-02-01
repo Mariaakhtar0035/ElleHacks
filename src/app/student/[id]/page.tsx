@@ -164,6 +164,11 @@ export default function StudentDashboard() {
         availableRewards={availableRewards}
       />
 
+      {/* Your Money Story - Spend vs Grow chart with Time Machine toggle */}
+      <Card borderColor="border-gray-800" className="p-8 overflow-hidden">
+        <GrowthComparisonChart history={history} whatIfGrow={whatIfGrow} />
+      </Card>
+
       {/* Move Tokens - anytime transfer */}
       <TransferTokensCard
         studentId={studentId}
@@ -173,11 +178,6 @@ export default function StudentDashboard() {
         growTokens={student.growTokens}
         onTransfer={refresh}
       />
-
-      {/* Your Money Story - Spend vs Grow chart with Time Machine toggle */}
-      <Card borderColor="border-gray-800" className="p-8 overflow-hidden">
-        <GrowthComparisonChart history={history} whatIfGrow={whatIfGrow} />
-      </Card>
 
       {/* My Purchases */}
       <Card borderColor="border-emerald-500" className="p-8">
