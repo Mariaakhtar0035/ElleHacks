@@ -2,11 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
 import { Button } from "@/components/ui/Button";
-import { EmptyState } from "@/components/EmptyState";
 import { ClaimRewardModal } from "@/components/ClaimRewardModal";
 import {
   getStudent,
@@ -16,13 +14,10 @@ import {
   claimPendingReward,
   getBalanceHistory,
 } from "@/lib/store";
-import { TokenChip } from "@/components/ui/TokenChip";
 import { TransferTokensCard } from "@/components/TransferTokensCard";
 import { GrowthComparisonChart } from "@/components/GrowthComparisonChart";
 import { SpendingBehaviorCard } from "@/components/SpendingBehaviorCard";
-import { PurchaseCard } from "@/components/PurchaseCard";
 import { computeWhatIfGrow } from "@/lib/growthCalculator";
-import { Badge } from "@/components/ui/Badge";
 import type { PendingReward } from "@/types";
 
 export default function StudentDashboard() {
@@ -210,66 +205,6 @@ export default function StudentDashboard() {
         growTokens={student.growTokens}
         onTransfer={refresh}
       />
-
-      {/* My Purchases */}
-      <Card borderColor="border-emerald-500" className="p-8">
-        <h2 className="font-display font-bold text-2xl text-gray-900 mb-6">
-          My Purchases
-        </h2>
-        {purchasedRewardItems.length === 0 ? (
-          <p className="text-gray-600 text-center py-4">
-            No purchases yet. Visit the reward shop to spend your tokens!
-          </p>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {purchasedRewardItems.map((reward) => (
-              <PurchaseCard key={reward.id} reward={reward} />
-            ))}
-          </div>
-        )}
-      </Card>
-
-      {/* Recent Activity */}
-      <Card borderColor="border-gray-800" className="p-8">
-        <h2 className="font-display font-bold text-2xl text-gray-900 mb-6">
-          Recent Activity
-        </h2>
-        {missions.length === 0 ? (
-          <EmptyState
-            emoji="🎯"
-            title="No missions yet!"
-            description="Visit the marketplace to get started and earn tokens!"
-            action={
-              <Link href={`/student/${studentId}/marketplace`}>
-                <Button variant="primary">Go to Marketplace</Button>
-              </Link>
-            }
-          />
-        ) : (
-          <div className="space-y-4">
-            {missions.slice(0, 5).map((mission) => (
-              <div
-                key={mission.id}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border-2 border-gray-200"
-              >
-                <div>
-                  <h3 className="font-display font-bold text-gray-900">
-                    {mission.title}
-                  </h3>
-                  <div className="mt-1">
-                    <Badge status={mission.status} />
-                  </div>
-                </div>
-                <TokenChip
-                  amount={mission.currentReward}
-                  type="spend"
-                  size="md"
-                />
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
     </div>
   );
 }

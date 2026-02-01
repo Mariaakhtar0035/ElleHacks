@@ -89,7 +89,7 @@ export default function StudentLayout({
     },
     {
       href: `/student/${studentId}/missions`,
-      label: "My Missions",
+      label: "Activity",
       icon: "📋",
     },
     { href: `/student/${studentId}/grow`, label: "Grow Tokens", icon: "📈" },

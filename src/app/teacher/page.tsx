@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -15,15 +15,8 @@ import { AssignMissionModal } from "@/components/AssignMissionModal";
 import { StudentAvatar } from "@/components/StudentAvatar";
 import { SuccessSparkle } from "@/components/SuccessSparkle";
 import {
-  getStudents,
-  getMissions,
-  getRewards,
   getRecommendedSplit,
   createStudent,
-  assignMission,
-  unassignMission,
-  completeMission,
-  getPendingApprovalMissions,
   createMission,
   updateMission,
   deleteMission,
@@ -32,14 +25,28 @@ import {
   updateReward,
   deleteReward,
 } from "@/lib/store";
-import { Mission, Reward } from "@/types";
+import { Mission, Reward, Student, MissionBandColor } from "@/types";
+
+async function fetchDashboard() {
+  const res = await fetch("/api/teacher/dashboard", {
+    cache: "no-store",
+    headers: { "Cache-Control": "no-cache" },
+  });
+  if (!res.ok) throw new Error("Failed to fetch dashboard");
+  return res.json() as Promise<{
+    missions: Mission[];
+    students: Student[];
+    rewards: Reward[];
+    pendingMissions: Mission[];
+  }>;
+}
 
 export default function TeacherDashboard() {
-  const [students, setStudents] = useState(getStudents());
-  const [missions, setMissions] = useState(getMissions());
-  const [pendingMissions, setPendingMissions] = useState(
-    getPendingApprovalMissions(),
-  );
+  const [students, setStudents] = useState<Student[]>([]);
+  const [missions, setMissions] = useState<Mission[]>([]);
+  const [pendingMissions, setPendingMissions] = useState<Mission[]>([]);
+  const [rewards, setRewards] = useState<Reward[]>([]);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [showSparkle, setShowSparkle] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
@@ -52,18 +59,26 @@ export default function TeacherDashboard() {
   const [editingReward, setEditingReward] = useState<Reward | null>(null);
   const [showRewardDeleteModal, setShowRewardDeleteModal] = useState(false);
   const [rewardToDelete, setRewardToDelete] = useState<Reward | null>(null);
-  const [rewards, setRewards] = useState(getRewards());
   const [showStudentFormModal, setShowStudentFormModal] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "missions" | "rewards" | "requests" | "students"
   >("missions");
 
-  const refreshData = () => {
-    setStudents(getStudents());
-    setMissions(getMissions());
-    setRewards(getRewards());
-    setPendingMissions(getPendingApprovalMissions());
-  };
+  const refreshData = () =>
+    fetchDashboard()
+      .then((data) => {
+        setStudents(data.students);
+        setMissions(data.missions);
+        setRewards(data.rewards);
+        setPendingMissions(data.pendingMissions);
+      })
+      .catch((err) => console.error("Failed to refresh dashboard:", err));
+
+  useEffect(() => {
+    refreshData().finally(() => setLoading(false));
+    const interval = setInterval(refreshData, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const triggerSuccess = (msg: string) => {
     setMessage(msg);
@@ -73,24 +88,35 @@ export default function TeacherDashboard() {
     setTimeout(() => setShowSparkle(false), 1500);
   };
 
-  const handleAssignMission = (missionId: string, studentId: string) => {
-    const mission = missions.find((m) => m.id === missionId);
-    if (mission?.assignedStudentId && mission.assignedStudentId !== studentId) {
-      unassignMission(missionId);
-    }
-    const result = assignMission(missionId, studentId);
-    if (result) {
+  const handleAssignMission = async (missionId: string, studentId: string) => {
+    try {
+      const res = await fetch("/api/teacher/assign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ missionId, studentId }),
+      });
+      if (!res.ok) throw new Error("Assign failed");
       const name = students.find((s) => s.id === studentId)?.name;
       triggerSuccess(`Mission assigned to ${name}!`);
+    } catch (err) {
+      console.error("Failed to assign mission:", err);
     }
   };
 
-  const handleApproveMission = (missionId: string) => {
-    const result = completeMission(missionId);
-    if (result) {
+  const handleApproveMission = async (missionId: string) => {
+    try {
+      const res = await fetch("/api/teacher/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ missionId }),
+      });
+      if (!res.ok) throw new Error("Complete failed");
+      const data = await res.json();
       triggerSuccess(
-        `Mission approved! ${result.student.name} has ${result.pendingReward.totalAmount} tokens to claim.`,
+        `Mission approved! ${data.student.name} has ${data.pendingReward.totalAmount} tokens to claim.`,
       );
+    } catch (err) {
+      console.error("Failed to approve mission:", err);
     }
   };
 
@@ -191,6 +217,12 @@ export default function TeacherDashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        {loading && (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          </div>
+        )}
         {message && (
           <div className="bg-green-100 border-4 border-green-500 rounded-2xl p-4 text-center shadow-md">
             <p className="text-lg font-bold text-green-800 font-display">
@@ -199,6 +231,8 @@ export default function TeacherDashboard() {
           </div>
         )}
 
+        {!loading && (
+        <>
         <nav
           role="tablist"
           aria-label="Dashboard sections"
@@ -690,6 +724,9 @@ export default function TeacherDashboard() {
             </Card>
           </div>
         )}
+        </>
+        )}
+
       </main>
 
       <MissionFormModal
