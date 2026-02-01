@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
 import { StudentAvatar } from "@/components/StudentAvatar";
-import { NarratorBanner } from "@/components/NarratorBanner";
 import { MrsPennyworthPanel } from "@/components/MrsPennyworthPanel";
 import { MrsPennyworthAvatar } from "@/components/MrsPennyworthAvatar";
 import { getStudent, getStudentMissions, getAvailableMissions, getMissions, getRewards } from "@/lib/store";
@@ -78,7 +77,7 @@ export default function StudentLayout({
     { href: `/student/${studentId}/marketplace`, label: "Marketplace", icon: "🏪" },
     { href: `/student/${studentId}/missions`, label: "My Missions", icon: "📋" },
     { href: `/student/${studentId}/grow`, label: "Grow Tokens", icon: "📈" },
-    { href: `/student/${studentId}/save`, label: "Save Tokens", icon: "💾" },
+    { href: `/student/${studentId}/save`, label: "Save Tokens", icon: "💰" },
     { href: `/student/${studentId}/shop`, label: "Reward Shop", icon: "🎁" },
   ];
 
@@ -208,15 +207,6 @@ export default function StudentLayout({
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <NarratorBanner
-          studentName={student.name}
-          page={currentPage}
-          spendTokens={student.spendTokens}
-          saveTokens={student.saveTokens}
-          growTokens={student.growTokens}
-          missionCount={studentMissions.length}
-          availableMissions={availableMissions.length}
-        />
         {children}
       </main>
 

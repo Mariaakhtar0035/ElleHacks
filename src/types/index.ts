@@ -20,6 +20,8 @@ export interface Student {
   balanceHistory?: BalanceHistoryEntry[];
   /** 4-digit PIN for student login */
   pin: string;
+  /** Optional save goal in tokens; default 200 when undefined */
+  saveGoal?: number;
 }
 
 /** Top band color for mission card (board-game sets) */
@@ -64,7 +66,7 @@ export interface PendingReward {
   totalAmount: number;
 }
 
-export type ExplanationType = "SUPPLY_DEMAND" | "SPEND_VS_GROW" | "COMPOUND_GROWTH" | "MISSION_APPROVAL" | "NARRATOR";
+export type ExplanationType = "SUPPLY_DEMAND" | "SPEND_VS_GROW" | "COMPOUND_GROWTH" | "MISSION_APPROVAL" | "NARRATOR" | "MONEY_STORY_INSIGHT" | "SPENDING_BEHAVIOR_INSIGHT" | "TRANSFER_INSIGHT";
 
 export type NarratorPage = "dashboard" | "marketplace" | "missions" | "grow" | "save" | "shop";
 

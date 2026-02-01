@@ -7,6 +7,9 @@ const FALLBACK_TEXTS: Record<ExplanationType, string> = {
   COMPOUND_GROWTH: "Your Grow tokens earn 2% more every week. The longer you wait, the more you'll have!",
   MISSION_APPROVAL: "Great job! Your teacher approved your mission and you earned tokens.",
   NARRATOR: "Welcome! Let's learn about money together.",
+  MONEY_STORY_INSIGHT: "You're building a great money story! Keep saving, spending wisely, and watching your Grow tokens grow.",
+  SPENDING_BEHAVIOR_INSIGHT: "Here's a tip: try saving a little before you spend. Your future self will thank you!",
+  TRANSFER_INSIGHT: "Moving tokens to Grow helps them grow over time! Moving to Spend lets you use them now. It's like planting seeds vs picking fruit!",
 };
 
 const NARRATOR_FALLBACKS: Record<NarratorPage, string> = {
@@ -56,6 +59,71 @@ Give ONE short, personalized, encouraging sentence that:
 Keep it to exactly 1 sentence, under 20 words.`;
 }
 
+function buildMoneyStoryInsightPrompt(studentName: string, context: any): string {
+  const history = (context.history || []) as Array<{ week: number; spendBalance: number; saveBalance: number; growBalance: number }>;
+  const whatIfGrow = (context.whatIfGrow || []) as number[];
+  const currentSpend = context.currentSpend ?? 0;
+  const currentSave = context.currentSave ?? 0;
+  const currentGrow = context.currentGrow ?? 0;
+
+  const historySummary = history.length
+    ? history.map((h, i) => {
+        const whatIf = whatIfGrow[i];
+        return `Week ${h.week}: Spend ${h.spendBalance}, Save ${h.saveBalance}, Grow ${h.growBalance}${whatIf != null ? ` | What-if Grow: ${whatIf}` : ""}`;
+      }).join("\n")
+    : "No history yet.";
+
+  const whatIfFinal = whatIfGrow.length > 0 ? whatIfGrow[whatIfGrow.length - 1] : null;
+
+  return `You are Mrs. Pennyworth, a friendly financial guide for a classroom economy game. ${studentName} is a 7-12 year old student.
+
+Their money story (Spend, Save, Grow over time):
+${historySummary}
+
+Current totals: ${currentSpend} Spend, ${currentSave} Save, ${currentGrow} Grow tokens.
+${whatIfFinal != null ? `"If I grew everything" scenario would have ${whatIfFinal} Grow tokens by now.` : ""}
+
+Analyze their money story and give 2-3 short, encouraging insights (1-2 sentences each). Be specific to their data (mention actual numbers or patterns). Kid-friendly. No bullet symbols—use plain text with line breaks between insights. CRITICAL: Every insight must be a complete sentence. Never cut off mid-sentence.`;
+}
+
+function buildSpendingBehaviorPrompt(studentName: string, context: any): string {
+  const history = (context.history || []) as Array<{ week: number; spendBalance: number; saveBalance: number; growBalance: number }>;
+  const purchasedRewards = (context.purchasedRewards || []) as Array<{ title: string; cost: number }>;
+  const availableRewards = (context.availableRewards || []) as Array<{ title: string; cost: number }>;
+  const currentSpend = context.currentSpend ?? 0;
+  const currentSave = context.currentSave ?? 0;
+  const currentGrow = context.currentGrow ?? 0;
+  const saveGoal = context.saveGoal;
+
+  const historySummary = history.length
+    ? history.map((h) => `Week ${h.week}: Spend ${h.spendBalance}, Save ${h.saveBalance}, Grow ${h.growBalance}`).join("\n")
+    : "No history yet.";
+
+  const purchasesSummary = purchasedRewards.length
+    ? purchasedRewards.map((r) => `${r.title} (${r.cost} tokens)`).join(", ")
+    : "None yet.";
+
+  const availableSummary = availableRewards.length
+    ? availableRewards.slice(0, 5).map((r) => `${r.title} (${r.cost} tokens)`).join(", ")
+    : "None.";
+
+  return `You are Mrs. Pennyworth, a friendly financial guide for a classroom economy game. ${studentName} is a 7-12 year old student.
+
+Their token history (Spend, Save, Grow by week):
+${historySummary}
+
+Current balances: ${currentSpend} Spend, ${currentSave} Save, ${currentGrow} Grow tokens.
+${saveGoal != null ? `Save goal: ${saveGoal} tokens.` : "No save goal set."}
+Purchases so far: ${purchasesSummary}
+Available rewards in shop: ${availableSummary}
+
+Give exactly 3 suggestions. No greeting. No sign-off like "Keep up the great work!". Output ONLY these 3 lines, one per line:
+(1) A brief pattern insight about how they spend (1 sentence).
+(2) Balance advice—move more to Save or Grow (1 sentence).
+(3) Purchase timing—when to spend vs wait (1 sentence).
+Be specific to their data. Kid-friendly, ages 7-12. CRITICAL: Each line must be a complete sentence. Stop after the 3rd suggestion. Never cut off mid-sentence.`;
+}
+
 function buildPrompt(
   type: ExplanationType,
   studentName: string,
@@ -64,12 +132,19 @@ function buildPrompt(
   if (type === "NARRATOR") {
     return buildNarratorPrompt(studentName, context);
   }
+  if (type === "MONEY_STORY_INSIGHT") {
+    return buildMoneyStoryInsightPrompt(studentName, context);
+  }
+  if (type === "SPENDING_BEHAVIOR_INSIGHT") {
+    return buildSpendingBehaviorPrompt(studentName, context);
+  }
   
   const prompts: Record<string, string> = {
     SUPPLY_DEMAND: `Explain to ${studentName}, a 7-12 year old student, why the mission reward decreased from ${context.baseReward} to ${context.currentReward} tokens because ${context.requestCount} students requested it. Use simple language and make it fun. Keep it to 1-2 sentences.`,
     SPEND_VS_GROW: `Explain to ${studentName}, a 7-12 year old student, that they just earned ${context.totalReward} tokens, split into ${context.spendAmount} Spend tokens (can use now), ${context.saveAmount} Save tokens (set aside), and ${context.growAmount} Grow tokens (locked and growing). Use simple language. Keep it to 1-2 sentences.`,
     COMPOUND_GROWTH: `Explain to ${studentName}, a 7-12 year old student, how their ${context.currentGrow} Grow tokens will grow to ${context.futureAmount} tokens in ${context.timeframe} with 2% weekly compound growth. Make it exciting and simple. Keep it to 1-2 sentences.`,
     MISSION_APPROVAL: `Congratulate ${studentName}, a 7-12 year old student, for completing the mission "${context.missionTitle}" and earning ${context.reward} tokens. Make it encouraging and fun. Keep it to 1-2 sentences.`,
+    TRANSFER_INSIGHT: `Explain to ${studentName}, a 7-12 year old student, why moving tokens between Spend, Save, and Grow matters. Moving to Grow = tokens grow 2% every week for the future. Moving to Spend = use them now. Use simple, kid-friendly language. Keep it to 1-2 sentences.`,
   };
 
   return prompts[type] || "";
@@ -197,10 +272,11 @@ export async function generateExplanation(
     const useOR = hasOpenRouterKey();
     fetch('http://127.0.0.1:7242/ingest/f38e6ae9-aec7-427b-b7e9-fa2897140ff4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'gemini.ts:generateExplanation',message:'Provider check',data:{hasOpenRouterKey:useOR,hasKeySet:!!process.env.OPENROUTER_API_KEY},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
     // #endregion
+    const maxTokens = type === "MONEY_STORY_INSIGHT" ? 450 : type === "SPENDING_BEHAVIOR_INSIGHT" ? 500 : 150;
     if (useOR) {
       const response = await callOpenRouter(
         [{ role: "user", content: prompt }],
-        150,
+        maxTokens,
         0.8
       );
       return response;
@@ -213,7 +289,7 @@ export async function generateExplanation(
       return FALLBACK_TEXTS[type];
     }
 
-    const response = await callGeminiAPI(prompt);
+    const response = await callGeminiAPI(prompt, maxTokens);
     return response;
   } catch (error) {
     console.error("Explanation API error:", error);

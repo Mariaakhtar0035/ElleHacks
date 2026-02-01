@@ -1,26 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import { useParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
-import { TransferTokensCard } from "@/components/TransferTokensCard";
-import { getStudent, getBalanceHistory } from "@/lib/store";
-import { getProjections, getGrowthPercentage, computeWhatIfGrow } from "@/lib/growthCalculator";
-import { GrowthComparisonChart } from "@/components/GrowthComparisonChart";
+import { getStudent } from "@/lib/store";
+import { getProjections, getGrowthPercentage } from "@/lib/growthCalculator";
 
 export default function GrowTokensPage() {
   const params = useParams();
   const studentId = params.id as string;
-  const [, setRefresh] = useState(0);
-  const refresh = () => setRefresh((r) => r + 1);
 
   const student = getStudent(studentId);
   if (!student) return null;
 
   const projections = getProjections(student.growTokens);
-  const history = getBalanceHistory(studentId);
-  const whatIfGrow = computeWhatIfGrow(history);
 
   return (
     <div className="space-y-8">
@@ -32,14 +25,6 @@ export default function GrowTokensPage() {
           If you wait... your tokens grow!
         </p>
       </div>
-
-      {/* Move Tokens - anytime transfer */}
-      <TransferTokensCard
-        studentId={studentId}
-        spendTokens={student.spendTokens}
-        growTokens={student.growTokens}
-        onTransfer={refresh}
-      />
 
       {/* Growth Explanation */}
       <Card borderColor="border-amber-400" className="p-6 bg-amber-50">
@@ -131,11 +116,6 @@ export default function GrowTokensPage() {
           </Card>
         </div>
       </div>
-
-      {/* Your Money Story - Spend vs Grow chart with Time Machine toggle */}
-      <Card borderColor="border-gray-800" className="p-8 overflow-hidden">
-        <GrowthComparisonChart history={history} whatIfGrow={whatIfGrow} />
-      </Card>
 
       {/* Vault / Investment Board - Growth chart */}
       <Card borderColor="border-gray-800" className="p-8 overflow-hidden">

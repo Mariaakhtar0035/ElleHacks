@@ -57,6 +57,8 @@ interface MissionCardProps {
   onEdit?: (mission: Mission) => void;
   onDelete?: (mission: Mission) => void;
   onAssign?: (mission: Mission) => void;
+  /** Marketplace: when reward dropped (Base: X), callback to explain why */
+  onExplainPriceDrop?: (mission: Mission) => void;
 }
 
 export function MissionCard({
@@ -74,6 +76,7 @@ export function MissionCard({
   onEdit,
   onDelete,
   onAssign,
+  onExplainPriceDrop,
 }: MissionCardProps) {
   const isMarketplace = variant === "marketplace";
   const isTeacher = variant === "teacher";
@@ -198,8 +201,20 @@ export function MissionCard({
             Token Reward
           </div>
           {mission.currentReward < mission.baseReward && (
-            <div className="text-xs font-medium mt-1">
-              Base: {mission.baseReward}
+            <div className="text-xs font-medium mt-1 flex flex-col items-center gap-1">
+              <span>Base: {mission.baseReward}</span>
+              {isMarketplace && onExplainPriceDrop && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onExplainPriceDrop(mission);
+                  }}
+                  className="text-amber-600 hover:text-amber-700 underline font-bold uppercase"
+                >
+                  Why less?
+                </button>
+              )}
             </div>
           )}
         </div>

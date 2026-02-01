@@ -8,8 +8,12 @@ import { TokenDisplay } from "@/components/ui/TokenDisplay";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { ClaimRewardModal } from "@/components/ClaimRewardModal";
-import { getStudent, getStudentMissions, getRewards, getPendingRewardsForStudent, claimPendingReward } from "@/lib/store";
+import { getStudent, getStudentMissions, getRewards, getPendingRewardsForStudent, claimPendingReward, getBalanceHistory } from "@/lib/store";
 import { TokenChip } from "@/components/ui/TokenChip";
+import { TransferTokensCard } from "@/components/TransferTokensCard";
+import { GrowthComparisonChart } from "@/components/GrowthComparisonChart";
+import { SpendingBehaviorCard } from "@/components/SpendingBehaviorCard";
+import { computeWhatIfGrow } from "@/lib/growthCalculator";
 import { Badge } from "@/components/ui/Badge";
 import type { PendingReward } from "@/types";
 
@@ -24,9 +28,9 @@ export default function StudentDashboard() {
   const missions = getStudentMissions(studentId);
   const pendingRewards = getPendingRewardsForStudent(studentId);
 
-  const handleClaim = (spendAmount: number, growAmount: number) => {
+  const handleClaim = (spendAmount: number, saveAmount: number, growAmount: number) => {
     if (!claimingPending) return;
-    claimPendingReward(claimingPending.id, spendAmount, growAmount);
+    claimPendingReward(claimingPending.id, spendAmount, saveAmount, growAmount);
     setClaimingPending(null);
     refresh();
   };
@@ -35,10 +39,16 @@ export default function StudentDashboard() {
 
   const completedMissions = missions.filter((m) => m.status === "COMPLETED");
   const totalEarned = student.spendTokens + student.growTokens;
+  const history = getBalanceHistory(studentId);
+  const whatIfGrow = computeWhatIfGrow(history);
   const rewards = getRewards();
   const purchasedRewardItems = rewards.filter((r) =>
     student.purchasedRewards.includes(r.id)
   );
+  const availableRewards = rewards
+    .filter((r) => !r.soldOut && !student.purchasedRewards.includes(r.id))
+    .slice(0, 5)
+    .map((r) => ({ title: r.title, cost: r.cost }));
 
   return (
     <div className="space-y-8">
@@ -73,6 +83,7 @@ export default function StudentDashboard() {
       {claimingPending && (
         <ClaimRewardModal
           pendingReward={claimingPending}
+          studentName={student.name}
           onClaim={handleClaim}
           onClose={() => setClaimingPending(null)}
         />
@@ -140,6 +151,33 @@ export default function StudentDashboard() {
           </p>
         </Card>
       </div>
+
+      {/* Mrs. Pennyworth's Spending Insights */}
+      <SpendingBehaviorCard
+        studentName={student.name}
+        history={history}
+        purchasedRewardItems={purchasedRewardItems}
+        currentSpend={student.spendTokens}
+        currentSave={student.saveTokens}
+        currentGrow={student.growTokens}
+        saveGoal={student.saveGoal}
+        availableRewards={availableRewards}
+      />
+
+      {/* Move Tokens - anytime transfer */}
+      <TransferTokensCard
+        studentId={studentId}
+        studentName={student.name}
+        spendTokens={student.spendTokens}
+        saveTokens={student.saveTokens}
+        growTokens={student.growTokens}
+        onTransfer={refresh}
+      />
+
+      {/* Your Money Story - Spend vs Grow chart with Time Machine toggle */}
+      <Card borderColor="border-gray-800" className="p-8 overflow-hidden">
+        <GrowthComparisonChart history={history} whatIfGrow={whatIfGrow} />
+      </Card>
 
       {/* My Purchases */}
       <Card borderColor="border-emerald-500" className="p-8">

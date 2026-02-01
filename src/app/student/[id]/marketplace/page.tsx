@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { SuccessSparkle } from "@/components/SuccessSparkle";
 import { getAvailableMissions, requestMission, getStudent } from "@/lib/store";
+import type { Mission } from "@/types";
 
 const SUPPLY_DEMAND_FALLBACK =
   "When lots of students want the same mission, the reward goes down. It's like when a popular toy costs less when there's lots of it!";
@@ -22,6 +23,11 @@ export default function MarketplacePage() {
   const [supplyDemandExplanation, setSupplyDemandExplanation] = useState<string | null>(null);
   const [loadingSupplyDemand, setLoadingSupplyDemand] = useState(false);
   const [showSparkle, setShowSparkle] = useState(false);
+
+  // Pre-request "Why less?" modal (when student clicks before requesting)
+  const [priceDropModalMission, setPriceDropModalMission] = useState<Mission | null>(null);
+  const [priceDropExplanation, setPriceDropExplanation] = useState<string | null>(null);
+  const [loadingPriceDropExplanation, setLoadingPriceDropExplanation] = useState(false);
 
   const handleRequestMission = (missionId: string) => {
     const result = requestMission(studentId, missionId);
@@ -75,6 +81,36 @@ export default function MarketplacePage() {
     setLoadingSupplyDemand(false);
   };
 
+  const handleExplainPriceDrop = (mission: Mission) => {
+    setPriceDropModalMission(mission);
+    setPriceDropExplanation(null);
+    setLoadingPriceDropExplanation(true);
+    const studentName = getStudent(studentId)?.name ?? "Student";
+    fetch("/api/gemini/explain", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "SUPPLY_DEMAND",
+        studentName,
+        context: {
+          baseReward: mission.baseReward,
+          currentReward: mission.currentReward,
+          requestCount: mission.requestCount,
+        },
+      }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Failed"))))
+      .then((data) => setPriceDropExplanation(data.explanation ?? SUPPLY_DEMAND_FALLBACK))
+      .catch(() => setPriceDropExplanation(SUPPLY_DEMAND_FALLBACK))
+      .finally(() => setLoadingPriceDropExplanation(false));
+  };
+
+  const closePriceDropModal = () => {
+    setPriceDropModalMission(null);
+    setPriceDropExplanation(null);
+    setLoadingPriceDropExplanation(false);
+  };
+
   const availableMissions = missions.filter(m => !m.assignedStudentId);
 
   return (
@@ -102,6 +138,7 @@ export default function MarketplacePage() {
               mission={mission}
               studentId={studentId}
               onRequest={handleRequestMission}
+              onExplainPriceDrop={handleExplainPriceDrop}
             />
           ))}
         </div>
@@ -125,6 +162,25 @@ export default function MarketplacePage() {
           </div>
         )}
         <Button onClick={closeModal} className="w-full">
+          Got it!
+        </Button>
+      </Modal>
+
+      <Modal
+        isOpen={!!priceDropModalMission}
+        onClose={closePriceDropModal}
+        title="Why is the reward less?"
+      >
+        {loadingPriceDropExplanation ? (
+          <div className="h-12 bg-gray-100 rounded-xl animate-pulse flex items-center justify-center mb-6">
+            <span className="text-sm text-gray-500">Mrs. Pennyworth is thinking…</span>
+          </div>
+        ) : priceDropExplanation ? (
+          <p className="text-lg text-gray-700 mb-6 border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/80 rounded-r-xl">
+            {priceDropExplanation}
+          </p>
+        ) : null}
+        <Button onClick={closePriceDropModal} className="w-full">
           Got it!
         </Button>
       </Modal>

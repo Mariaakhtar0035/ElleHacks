@@ -26,8 +26,6 @@ interface GrowthComparisonChartProps {
  * "What if" simulation: when "If I Grew Everything" is selected, overlays a dashed green line
  * computed by computeWhatIfGrow() - simulates 100% of earnings going to Grow with same
  * weekly earnings timing. See growthCalculator.computeWhatIfGrow for calculation details.
- *
- * AI Insight: The card below is reserved for future Gemini analysis of the history.
  */
 export function GrowthComparisonChart({
   history,
@@ -170,13 +168,6 @@ export function GrowthComparisonChart({
             )}
           </LineChart>
         </ResponsiveContainer>
-      </div>
-
-      {/* AI Insight hook: placeholder for future Gemini analysis of history */}
-      <div className="mt-6 rounded-xl border-2 border-gray-300 bg-white/80 p-4 text-center">
-        <p className="text-gray-600 font-medium text-sm md:text-base italic">
-          Mrs. Pennyworth is thinking about your money story…
-        </p>
       </div>
     </div>
   );

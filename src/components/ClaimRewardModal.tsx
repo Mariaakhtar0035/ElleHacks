@@ -8,12 +8,17 @@ import { getRecommendedSplit } from "@/lib/store";
 
 interface ClaimRewardModalProps {
   pendingReward: PendingReward;
+  studentName?: string;
   onClaim: (spendAmount: number, saveAmount: number, growAmount: number) => void;
   onClose: () => void;
 }
 
+const SPEND_VS_GROW_FALLBACK =
+  "You earned tokens! Some go to Spend (use now), some to Save, and some to Grow (locked and growing).";
+
 export function ClaimRewardModal({
   pendingReward,
+  studentName = "Student",
   onClaim,
   onClose,
 }: ClaimRewardModalProps) {
@@ -22,6 +27,8 @@ export function ClaimRewardModal({
   const [saveAmount, setSaveAmount] = useState(recommended.save);
   const [growAmount, setGrowAmount] = useState(recommended.grow);
   const [error, setError] = useState<string | null>(null);
+  const [splitExplanation, setSplitExplanation] = useState<string | null>(null);
+  const [loadingSplitExplanation, setLoadingSplitExplanation] = useState(false);
 
   useEffect(() => {
     setSpendAmount(recommended.spend);
@@ -67,6 +74,29 @@ export function ClaimRewardModal({
     const grow = Math.max(0, Math.min(num, pendingReward.totalAmount));
     setGrowAmount(grow);
     setError(null);
+  };
+
+  const handleExplainSplit = () => {
+    setSplitExplanation(null);
+    setLoadingSplitExplanation(true);
+    fetch("/api/gemini/explain", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "SPEND_VS_GROW",
+        studentName,
+        context: {
+          totalReward: pendingReward.totalAmount,
+          spendAmount,
+          saveAmount,
+          growAmount,
+        },
+      }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Failed"))))
+      .then((data) => setSplitExplanation(data.explanation ?? SPEND_VS_GROW_FALLBACK))
+      .catch(() => setSplitExplanation(SPEND_VS_GROW_FALLBACK))
+      .finally(() => setLoadingSplitExplanation(false));
   };
 
   const handleSubmit = () => {
@@ -147,6 +177,24 @@ export function ClaimRewardModal({
             Total: {spendAmount + saveAmount + growAmount} / {pendingReward.totalAmount} tokens
           </p>
         </div>
+
+        <button
+          type="button"
+          onClick={handleExplainSplit}
+          className="text-sm font-bold text-amber-600 hover:text-amber-700 underline"
+        >
+          Why split like this?
+        </button>
+        {loadingSplitExplanation && (
+          <div className="h-12 bg-gray-100 rounded-xl animate-pulse flex items-center justify-center">
+            <span className="text-sm text-gray-500">Mrs. Pennyworth is thinking…</span>
+          </div>
+        )}
+        {splitExplanation && !loadingSplitExplanation && (
+          <p className="text-gray-700 font-medium border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/80 rounded-r-xl">
+            {splitExplanation}
+          </p>
+        )}
 
         {error && (
           <p className="text-red-600 font-medium text-sm">{error}</p>

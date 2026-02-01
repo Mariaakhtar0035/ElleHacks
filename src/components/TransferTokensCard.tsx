@@ -10,14 +10,19 @@ type Direction = "toGrow" | "toSpend";
 
 interface TransferTokensCardProps {
   studentId: string;
+  studentName?: string;
   spendTokens: number;
   saveTokens: number;
   growTokens: number;
   onTransfer: () => void;
 }
 
+const TRANSFER_INSIGHT_FALLBACK =
+  "Moving tokens to Grow helps them grow over time! Moving to Spend lets you use them now. It's like planting seeds vs picking fruit!";
+
 export function TransferTokensCard({
   studentId,
+  studentName = "Student",
   spendTokens,
   saveTokens,
   growTokens,
@@ -27,9 +32,29 @@ export function TransferTokensCard({
   const [direction, setDirection] = useState<Direction>("toGrow");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [transferExplanation, setTransferExplanation] = useState<string | null>(null);
+  const [loadingTransferExplanation, setLoadingTransferExplanation] = useState(false);
 
   const maxAmount = direction === "toGrow" ? spendTokens : growTokens;
   const canTransfer = direction === "toGrow" ? spendTokens > 0 : growTokens > 0;
+
+  const handleExplainTransfer = () => {
+    setTransferExplanation(null);
+    setLoadingTransferExplanation(true);
+    fetch("/api/gemini/explain", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "TRANSFER_INSIGHT",
+        studentName,
+        context: {},
+      }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Failed"))))
+      .then((data) => setTransferExplanation(data.explanation ?? TRANSFER_INSIGHT_FALLBACK))
+      .catch(() => setTransferExplanation(TRANSFER_INSIGHT_FALLBACK))
+      .finally(() => setLoadingTransferExplanation(false));
+  };
 
   const handleTransfer = () => {
     setError(null);
@@ -60,8 +85,25 @@ export function TransferTokensCard({
         Move Tokens
       </h3>
       <p className="text-sm text-gray-600 mb-4">
-        We recommend putting some tokens into Save and Grow for future goals.
+        We recommend putting some tokens into Save and Grow for future goals.{" "}
+        <button
+          type="button"
+          onClick={handleExplainTransfer}
+          className="text-emerald-600 hover:text-emerald-700 font-bold underline"
+        >
+          Why move tokens?
+        </button>
       </p>
+      {loadingTransferExplanation && (
+        <div className="h-10 bg-gray-100 rounded-xl animate-pulse flex items-center justify-center mb-2">
+          <span className="text-sm text-gray-500">Mrs. Pennyworth is thinking…</span>
+        </div>
+      )}
+      {transferExplanation && !loadingTransferExplanation && (
+        <p className="text-gray-700 font-medium border-l-4 border-emerald-400 pl-4 py-2 bg-emerald-50/80 rounded-r-xl mb-4">
+          {transferExplanation}
+        </p>
+      )}
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-bold text-gray-700 mb-2">

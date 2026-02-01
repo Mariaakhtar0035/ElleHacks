@@ -1,26 +1,54 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
-import { getStudent } from "@/lib/store";
+import { Button } from "@/components/ui/Button";
+import { getStudent, updateStudent } from "@/lib/store";
 
-const SAVE_GOAL = 200;
+const DEFAULT_SAVE_GOAL = 200;
 
 export default function SaveTokensPage() {
   const params = useParams();
   const studentId = params.id as string;
+  const [, setRefresh] = useState(0);
+  const refresh = () => setRefresh((r) => r + 1);
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const [editValue, setEditValue] = useState("");
+
   const student = getStudent(studentId);
   if (!student) return null;
 
-  const progress = Math.min(100, Math.round((student.saveTokens / SAVE_GOAL) * 100));
-  const remaining = Math.max(0, SAVE_GOAL - student.saveTokens);
+  const saveGoal = student.saveGoal ?? DEFAULT_SAVE_GOAL;
+  const progress = Math.min(100, Math.round((student.saveTokens / saveGoal) * 100));
+  const remaining = Math.max(0, saveGoal - student.saveTokens);
+
+  const handleStartEdit = () => {
+    setEditValue(String(saveGoal));
+    setIsEditingGoal(true);
+  };
+
+  const handleSaveGoal = () => {
+    const num = parseInt(editValue, 10);
+    if (!isNaN(num) && num >= 1 && num <= 9999) {
+      updateStudent(studentId, { saveGoal: num });
+      setIsEditingGoal(false);
+      setEditValue("");
+      refresh();
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingGoal(false);
+    setEditValue("");
+  };
 
   return (
     <div className="space-y-8">
       <div className="text-center">
         <h1 className="font-display font-bold text-4xl text-gray-900 mb-2">
-          💾 Save Tokens
+          💰 Save Tokens
         </h1>
         <p className="text-xl text-gray-700">
           Saving helps you reach goals a little at a time.
@@ -40,9 +68,40 @@ export default function SaveTokensPage() {
         <h2 className="font-display font-bold text-2xl text-gray-900 mb-3 text-center">
           🎯 Save Goal
         </h2>
-        <p className="text-center text-gray-600 mb-4">
-          Goal: {SAVE_GOAL} Save tokens
-        </p>
+        {isEditingGoal ? (
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
+            <label htmlFor="save-goal-input" className="sr-only">
+              Save goal amount
+            </label>
+            <input
+              id="save-goal-input"
+              type="number"
+              min={1}
+              max={9999}
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className="w-24 px-3 py-2 border-2 border-emerald-300 rounded-xl text-center font-display font-bold text-gray-900"
+            />
+            <span className="text-gray-600">Save tokens</span>
+            <div className="flex gap-2">
+              <Button variant="success" onClick={handleSaveGoal}>
+                Save
+              </Button>
+              <Button variant="secondary" onClick={handleCancelEdit}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+            <p className="text-center text-gray-600">
+              Goal: {saveGoal} Save tokens
+            </p>
+            <Button variant="secondary" onClick={handleStartEdit} className="px-3 py-1.5 text-sm">
+              Edit goal
+            </Button>
+          </div>
+        )}
         <div className="h-6 w-full bg-emerald-100 rounded-full overflow-hidden border border-emerald-200">
           <div
             className="h-full bg-emerald-500 transition-all"
