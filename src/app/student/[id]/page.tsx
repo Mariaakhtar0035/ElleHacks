@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
@@ -21,12 +21,12 @@ export default function StudentDashboard() {
   const params = useParams();
   const studentId = params.id as string;
   const [claimingPending, setClaimingPending] = useState<PendingReward | null>(null);
-  const [, setRefresh] = useState(0);
-  const refresh = () => setRefresh((r) => r + 1);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const refresh = () => setRefreshKey((r) => r + 1);
 
-  const student = getStudent(studentId);
-  const missions = getStudentMissions(studentId);
-  const pendingRewards = getPendingRewardsForStudent(studentId);
+  const student = useMemo(() => getStudent(studentId), [studentId, refreshKey]);
+  const missions = useMemo(() => getStudentMissions(studentId), [studentId, refreshKey]);
+  const pendingRewards = useMemo(() => getPendingRewardsForStudent(studentId), [studentId, refreshKey]);
 
   const handleClaim = (spendAmount: number, saveAmount: number, growAmount: number) => {
     if (!claimingPending) return;
@@ -38,7 +38,7 @@ export default function StudentDashboard() {
   if (!student) return null;
 
   const completedMissions = missions.filter((m) => m.status === "COMPLETED");
-  const totalEarned = student.spendTokens + student.growTokens;
+  const totalEarned = student.spendTokens + student.saveTokens + student.growTokens;
   const history = getBalanceHistory(studentId);
   const whatIfGrow = computeWhatIfGrow(history);
   const rewards = getRewards();

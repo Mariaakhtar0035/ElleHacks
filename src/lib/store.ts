@@ -560,13 +560,17 @@ export function claimPendingReward(
   const mission = getMission(pending.missionId);
   if (!student || !mission) return null;
 
-  student.spendTokens += spendAmount;
-  student.saveTokens += saveAmount;
-  student.growTokens += growAmount;
-  updateStudent(student.id, student);
+  // Update student tokens
+  const updatedStudent = updateStudent(student.id, {
+    spendTokens: student.spendTokens + spendAmount,
+    saveTokens: student.saveTokens + saveAmount,
+    growTokens: student.growTokens + growAmount,
+  });
+  
+  // Remove pending reward
   pendingRewards.splice(index, 1);
 
-  return { mission, student };
+  return { mission, student: updatedStudent! };
 }
 
 export function transferTokens(
@@ -577,17 +581,22 @@ export function transferTokens(
   const student = getStudent(studentId);
   if (!student) return null;
   if (amount <= 0) return null;
+  
+  let updatedStudent;
   if (direction === "toSpend") {
     if (student.growTokens < amount) return null;
-    student.growTokens -= amount;
-    student.spendTokens += amount;
+    updatedStudent = updateStudent(studentId, {
+      growTokens: student.growTokens - amount,
+      spendTokens: student.spendTokens + amount,
+    });
   } else {
     if (student.spendTokens < amount) return null;
-    student.spendTokens -= amount;
-    student.growTokens += amount;
+    updatedStudent = updateStudent(studentId, {
+      spendTokens: student.spendTokens - amount,
+      growTokens: student.growTokens + amount,
+    });
   }
-  updateStudent(studentId, student);
-  return { student };
+  return { student: updatedStudent! };
 }
 
 export function completeMission(missionId: string): { mission: Mission; student: Student; pendingReward: PendingReward } | null {
