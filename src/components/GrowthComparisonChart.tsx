@@ -11,15 +11,10 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-
-interface HistoryEntry {
-  week: number;
-  spendBalance: number;
-  growBalance: number;
-}
+import type { BalanceHistoryEntry } from "@/types";
 
 interface GrowthComparisonChartProps {
-  history: HistoryEntry[];
+  history: BalanceHistoryEntry[];
   whatIfGrow: number[];
 }
 
@@ -44,6 +39,7 @@ export function GrowthComparisonChart({
   const chartData = history.map((h, i) => ({
     week: h.week,
     spend: h.spendBalance,
+    save: h.saveBalance,
     grow: h.growBalance,
     whatIf: whatIfGrow[i] ?? 0,
   }));
@@ -131,6 +127,17 @@ export function GrowthComparisonChart({
               dataKey="spend"
               name="💰 Spend"
               stroke="#eab308"
+              strokeWidth={3}
+              dot={false}
+              isAnimationActive={true}
+              connectNulls
+            />
+            {/* Save: sky blue, steady */}
+            <Line
+              type="monotone"
+              dataKey="save"
+              name="💾 Save"
+              stroke="#0ea5e9"
               strokeWidth={3}
               dot={false}
               isAnimationActive={true}

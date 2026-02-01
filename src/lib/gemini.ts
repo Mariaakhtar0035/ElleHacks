@@ -2,7 +2,7 @@ import { ExplanationType, NarratorPage } from "@/types";
 
 const FALLBACK_TEXTS: Record<ExplanationType, string> = {
   SUPPLY_DEMAND: "When lots of students want the same mission, the reward goes down. It's like when a popular toy costs more!",
-  SPEND_VS_GROW: "You earned tokens! 70% goes to Spend (use now) and 30% goes to Grow (saves for later).",
+  SPEND_VS_GROW: "You earned tokens! Some go to Spend (use now), some to Save, and some to Grow (locked and growing).",
   COMPOUND_GROWTH: "Your Grow tokens earn 2% more every week. The longer you wait, the more you'll have!",
   MISSION_APPROVAL: "Great job! Your teacher approved your mission and you earned tokens.",
   NARRATOR: "Welcome! Let's learn about money together.",
@@ -13,7 +13,8 @@ const NARRATOR_FALLBACKS: Record<NarratorPage, string> = {
   marketplace: "Request missions to earn tokens. Remember, popular missions pay less!",
   missions: "Complete your missions and ask your teacher to approve them.",
   grow: "Your Grow tokens are earning 2% every week. Patience pays off!",
-  shop: "Spend your tokens wisely. Save some for later too!",
+  save: "Saving helps you reach goals. Even small amounts add up over time!",
+  shop: "Spend your tokens wisely. Save some for later and grow some too!",
 };
 
 function buildNarratorPrompt(studentName: string, context: any): string {
@@ -24,7 +25,7 @@ function buildNarratorPrompt(studentName: string, context: any): string {
   
   switch (page) {
     case "dashboard":
-      contextDescription = `${studentName} has ${context.spendTokens || 0} Spend tokens and ${context.growTokens || 0} Grow tokens. They have ${context.missionCount || 0} missions assigned.`;
+      contextDescription = `${studentName} has ${context.spendTokens || 0} Spend tokens, ${context.saveTokens || 0} Save tokens, and ${context.growTokens || 0} Grow tokens. They have ${context.missionCount || 0} missions assigned.`;
       break;
     case "marketplace":
       contextDescription = `${studentName} is viewing ${context.availableMissions || 0} available missions. ${recentAction}`;
@@ -35,8 +36,11 @@ function buildNarratorPrompt(studentName: string, context: any): string {
     case "grow":
       contextDescription = `${studentName} has ${context.growTokens || 0} Grow tokens that are growing 2% weekly. ${recentAction}`;
       break;
+    case "save":
+      contextDescription = `${studentName} has ${context.saveTokens || 0} Save tokens set aside for goals. ${recentAction}`;
+      break;
     case "shop":
-      contextDescription = `${studentName} has ${context.spendTokens || 0} Spend tokens to spend. ${recentAction}`;
+      contextDescription = `${studentName} has ${context.spendTokens || 0} Spend tokens to spend and ${context.saveTokens || 0} Save tokens set aside. ${recentAction}`;
       break;
   }
   
@@ -62,7 +66,7 @@ function buildPrompt(
   
   const prompts: Record<string, string> = {
     SUPPLY_DEMAND: `Explain to ${studentName}, a 7-12 year old student, why the mission reward decreased from ${context.baseReward} to ${context.currentReward} tokens because ${context.requestCount} students requested it. Use simple language and make it fun. Keep it to 1-2 sentences.`,
-    SPEND_VS_GROW: `Explain to ${studentName}, a 7-12 year old student, that they just earned ${context.totalReward} tokens, split into ${context.spendAmount} Spend tokens (can use now) and ${context.growAmount} Grow tokens (locked and growing). Use simple language. Keep it to 1-2 sentences.`,
+    SPEND_VS_GROW: `Explain to ${studentName}, a 7-12 year old student, that they just earned ${context.totalReward} tokens, split into ${context.spendAmount} Spend tokens (can use now), ${context.saveAmount} Save tokens (set aside), and ${context.growAmount} Grow tokens (locked and growing). Use simple language. Keep it to 1-2 sentences.`,
     COMPOUND_GROWTH: `Explain to ${studentName}, a 7-12 year old student, how their ${context.currentGrow} Grow tokens will grow to ${context.futureAmount} tokens in ${context.timeframe} with 2% weekly compound growth. Make it exciting and simple. Keep it to 1-2 sentences.`,
     MISSION_APPROVAL: `Congratulate ${studentName}, a 7-12 year old student, for completing the mission "${context.missionTitle}" and earning ${context.reward} tokens. Make it encouraging and fun. Keep it to 1-2 sentences.`,
   };
@@ -230,6 +234,7 @@ export interface AvailableMission {
 
 export interface AskNarratorContext {
   spendTokens: number;
+  saveTokens: number;
   growTokens: number;
   currentPage?: string;
   assignedMissionsCount?: number;
@@ -251,6 +256,7 @@ function buildAskNarratorContextString(ctx: AskNarratorContext | null): string {
   if (!ctx) return "No context available.";
   const parts: string[] = [];
   parts.push(`- Spend tokens: ${ctx.spendTokens}`);
+  parts.push(`- Save tokens: ${ctx.saveTokens}`);
   parts.push(`- Grow tokens: ${ctx.growTokens} (locked, grows 2% weekly)`);
   parts.push(`- Current page: ${ctx.currentPage || "unknown"}`);
   const assigned = (ctx.assignedMissionTitles || []).slice(0, 5);
@@ -279,17 +285,17 @@ function buildRecentConversationBlock(messages: RecentMessage[]): string {
 
 function buildContextualFallback(ctx: AskNarratorContext | null, studentName: string): string {
   if (!ctx) return "I'm not sure right now. Ask your teacher or try again!";
-  const { spendTokens, growTokens, currentPage } = ctx;
+  const { spendTokens, saveTokens, growTokens, currentPage } = ctx;
   if (currentPage === "shop" && spendTokens > 0) {
     return `Right now you have ${spendTokens} Spend tokens, ${studentName}! You could buy something in the shop or save them for later — it's your choice!`;
   }
   if (currentPage === "marketplace") {
-    return `You have ${spendTokens} Spend and ${growTokens} Grow tokens. Missions are a great way to earn more — want to pick one and see what happens?`;
+    return `You have ${spendTokens} Spend, ${saveTokens} Save, and ${growTokens} Grow tokens. Missions are a great way to earn more — want to pick one and see what happens?`;
   }
   if (currentPage === "grow" && growTokens > 0) {
     return `Your ${growTokens} Grow tokens are growing 2% every week! The longer you wait, the more you'll have. Patience pays off!`;
   }
-  return `You have ${spendTokens} Spend and ${growTokens} Grow tokens. What would you like to know about them?`;
+  return `You have ${spendTokens} Spend, ${saveTokens} Save, and ${growTokens} Grow tokens. What would you like to know about them?`;
 }
 
 export async function askNarrator(

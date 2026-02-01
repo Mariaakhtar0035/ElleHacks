@@ -6,15 +6,18 @@ function parseContext(body: Record<string, unknown>): AskNarratorContext | undef
   if (!ctx || typeof ctx !== "object" || Array.isArray(ctx)) return undefined;
   const c = ctx as Record<string, unknown>;
   const spendTokens = c.spendTokens;
+  const saveTokens = c.saveTokens;
   const growTokens = c.growTokens;
   if (
     typeof spendTokens !== "number" ||
+    typeof saveTokens !== "number" ||
     typeof growTokens !== "number"
   ) {
     return undefined;
   }
   const result: AskNarratorContext = {
     spendTokens: Number(spendTokens),
+    saveTokens: Number(saveTokens),
     growTokens: Number(growTokens),
   };
   if (typeof c.currentPage === "string") result.currentPage = c.currentPage;

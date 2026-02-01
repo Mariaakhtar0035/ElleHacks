@@ -1,2 +1,3 @@
-export const RECOMMENDED_SPEND_RATIO = 0.7;
+export const RECOMMENDED_SPEND_RATIO = 0.5;
+export const RECOMMENDED_SAVE_RATIO = 0.2;
 export const RECOMMENDED_GROW_RATIO = 0.3;

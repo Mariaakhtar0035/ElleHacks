@@ -514,7 +514,7 @@ export default function TeacherDashboard() {
                     const student = students.find(
                       (s) => s.id === mission.assignedStudentId,
                     );
-                    const { spend: spendAmount, grow: growAmount } =
+                    const { spend: spendAmount, save: saveAmount, grow: growAmount } =
                       getRecommendedSplit(mission.currentReward);
                     return (
                       <div
@@ -540,7 +540,7 @@ export default function TeacherDashboard() {
                                 <span className="font-bold text-gray-700">
                                   Reward Split:
                                 </span>{" "}
-                                {spendAmount} Spend + {growAmount} Grow tokens
+                                {spendAmount} Spend + {saveAmount} Save + {growAmount} Grow tokens
                               </div>
                             </div>
                           </div>
@@ -621,6 +621,17 @@ export default function TeacherDashboard() {
                           <TokenDisplay
                             amount={student.spendTokens}
                             type="spend"
+                            size="sm"
+                            showLabel={false}
+                          />
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-bold text-gray-700">
+                            Save:
+                          </span>
+                          <TokenDisplay
+                            amount={student.saveTokens}
+                            type="save"
                             size="sm"
                             showLabel={false}
                           />

@@ -78,6 +78,7 @@ export default function StudentLayout({
     { href: `/student/${studentId}/marketplace`, label: "Marketplace", icon: "🏪" },
     { href: `/student/${studentId}/missions`, label: "My Missions", icon: "📋" },
     { href: `/student/${studentId}/grow`, label: "Grow Tokens", icon: "📈" },
+    { href: `/student/${studentId}/save`, label: "Save Tokens", icon: "💾" },
     { href: `/student/${studentId}/shop`, label: "Reward Shop", icon: "🎁" },
   ];
 
@@ -86,6 +87,7 @@ export default function StudentLayout({
     if (pathname.endsWith("/marketplace")) return "marketplace";
     if (pathname.endsWith("/missions")) return "missions";
     if (pathname.endsWith("/grow")) return "grow";
+    if (pathname.endsWith("/save")) return "save";
     if (pathname.endsWith("/shop")) return "shop";
     return "dashboard";
   };
@@ -99,6 +101,7 @@ export default function StudentLayout({
   const purchasedRewardItems = allRewards.filter((r) => student.purchasedRewards.includes(r.id));
   const askNarratorContext = {
     spendTokens: student.spendTokens,
+    saveTokens: student.saveTokens,
     growTokens: student.growTokens,
     currentPage,
     assignedMissionsCount: studentMissions.length,
@@ -145,6 +148,9 @@ export default function StudentLayout({
             <div className="flex gap-3 flex-wrap items-center">
               <div className="bg-amber-50/90 rounded-xl border border-amber-200 px-4 py-2 shadow-sm">
                 <TokenDisplay amount={student.spendTokens} type="spend" size="sm" />
+              </div>
+              <div className="bg-sky-50/90 rounded-xl border border-sky-200 px-4 py-2 shadow-sm">
+                <TokenDisplay amount={student.saveTokens} type="save" size="sm" />
               </div>
               <div className="bg-blue-50/90 rounded-xl border border-blue-200 px-4 py-2 relative shadow-sm" title="Locked and growing! You can't spend these yet.">
                 <TokenDisplay amount={student.growTokens} type="grow" size="sm" showLock />
@@ -206,6 +212,7 @@ export default function StudentLayout({
           studentName={student.name}
           page={currentPage}
           spendTokens={student.spendTokens}
+          saveTokens={student.saveTokens}
           growTokens={student.growTokens}
           missionCount={studentMissions.length}
           availableMissions={availableMissions.length}

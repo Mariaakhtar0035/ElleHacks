@@ -11,6 +11,7 @@ type Direction = "toGrow" | "toSpend";
 interface TransferTokensCardProps {
   studentId: string;
   spendTokens: number;
+  saveTokens: number;
   growTokens: number;
   onTransfer: () => void;
 }
@@ -18,6 +19,7 @@ interface TransferTokensCardProps {
 export function TransferTokensCard({
   studentId,
   spendTokens,
+  saveTokens,
   growTokens,
   onTransfer,
 }: TransferTokensCardProps) {
@@ -58,7 +60,7 @@ export function TransferTokensCard({
         Move Tokens
       </h3>
       <p className="text-sm text-gray-600 mb-4">
-        We recommend putting about 30% in Grow for long-term growth!
+        We recommend putting some tokens into Save and Grow for future goals.
       </p>
       <div className="space-y-4">
         <div>
@@ -121,6 +123,10 @@ export function TransferTokensCard({
           <div className="flex items-center gap-2">
             <TokenDisplay amount={spendTokens} type="spend" size="sm" showLabel={false} />
             <span className="text-gray-600">Spend</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <TokenDisplay amount={saveTokens} type="save" size="sm" showLabel={false} />
+            <span className="text-gray-600">Save</span>
           </div>
           <div className="flex items-center gap-2">
             <TokenDisplay amount={growTokens} type="grow" size="sm" showLabel={false} />

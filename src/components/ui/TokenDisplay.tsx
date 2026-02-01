@@ -2,7 +2,7 @@ import React from "react";
 
 interface TokenDisplayProps {
   amount: number;
-  type: "spend" | "grow";
+  type: "spend" | "grow" | "save";
   size?: "sm" | "md" | "lg";
   showLabel?: boolean;
   animate?: boolean;
@@ -26,6 +26,7 @@ export function TokenDisplay({
   const config = sizeConfig[size];
 
   const isSpend = type === "spend";
+  const isSave = type === "save";
 
   return (
     <div className={`flex items-center gap-3 ${animate ? "coin-animation" : ""}`}>
@@ -34,12 +35,14 @@ export function TokenDisplay({
         className={`relative ${config.chip} rounded-full flex items-center justify-center shadow-lg
           ${isSpend 
             ? "bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 border-2 border-amber-700/50 ring-2 ring-amber-200/50" 
-            : "bg-gradient-to-br from-blue-300 via-blue-400 to-blue-600 border-2 border-blue-700/50 ring-2 ring-blue-200/50"
+            : isSave
+              ? "bg-gradient-to-br from-sky-300 via-sky-400 to-sky-600 border-2 border-sky-700/50 ring-2 ring-sky-200/50"
+              : "bg-gradient-to-br from-blue-300 via-blue-400 to-blue-600 border-2 border-blue-700/50 ring-2 ring-blue-200/50"
           }`}
-        title={type === "spend" ? "Spend Tokens" : "Grow Tokens"}
+        title={type === "spend" ? "Spend Tokens" : type === "save" ? "Save Tokens" : "Grow Tokens"}
       >
         <span className={`${config.icon} drop-shadow-sm`}>
-          {isSpend ? "🪙" : "🌱"}
+          {isSpend ? "🪙" : isSave ? "💾" : "🌱"}
         </span>
         {showLock && type === "grow" && (
           <span
@@ -54,14 +57,14 @@ export function TokenDisplay({
       <div className="flex flex-col">
         <span
           className={`font-display font-bold ${config.text} ${
-            isSpend ? "text-amber-800" : "text-blue-800"
+            isSpend ? "text-amber-800" : isSave ? "text-sky-800" : "text-blue-800"
           }`}
         >
           {amount}
         </span>
         {showLabel && (
           <span className="text-sm text-gray-600 font-medium">
-            {type === "spend" ? "Spend" : "Grow"} Tokens
+            {type === "spend" ? "Spend" : type === "save" ? "Save" : "Grow"} Tokens
           </span>
         )}
       </div>

@@ -8,7 +8,7 @@ import { getRecommendedSplit } from "@/lib/store";
 
 interface ClaimRewardModalProps {
   pendingReward: PendingReward;
-  onClaim: (spendAmount: number, growAmount: number) => void;
+  onClaim: (spendAmount: number, saveAmount: number, growAmount: number) => void;
   onClose: () => void;
 }
 
@@ -19,16 +19,19 @@ export function ClaimRewardModal({
 }: ClaimRewardModalProps) {
   const recommended = getRecommendedSplit(pendingReward.totalAmount);
   const [spendAmount, setSpendAmount] = useState(recommended.spend);
+  const [saveAmount, setSaveAmount] = useState(recommended.save);
   const [growAmount, setGrowAmount] = useState(recommended.grow);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setSpendAmount(recommended.spend);
+    setSaveAmount(recommended.save);
     setGrowAmount(recommended.grow);
-  }, [pendingReward.id, recommended.spend, recommended.grow]);
+  }, [pendingReward.id, recommended.spend, recommended.save, recommended.grow]);
 
   const handleUseRecommended = () => {
     setSpendAmount(recommended.spend);
+    setSaveAmount(recommended.save);
     setGrowAmount(recommended.grow);
     setError(null);
   };
@@ -37,12 +40,21 @@ export function ClaimRewardModal({
     const num = parseInt(value, 10);
     if (isNaN(num) || value === "") {
       setSpendAmount(0);
-      setGrowAmount(pendingReward.totalAmount);
       return;
     }
     const spend = Math.max(0, Math.min(num, pendingReward.totalAmount));
     setSpendAmount(spend);
-    setGrowAmount(pendingReward.totalAmount - spend);
+    setError(null);
+  };
+
+  const handleSaveChange = (value: string) => {
+    const num = parseInt(value, 10);
+    if (isNaN(num) || value === "") {
+      setSaveAmount(0);
+      return;
+    }
+    const save = Math.max(0, Math.min(num, pendingReward.totalAmount));
+    setSaveAmount(save);
     setError(null);
   };
 
@@ -50,26 +62,24 @@ export function ClaimRewardModal({
     const num = parseInt(value, 10);
     if (isNaN(num) || value === "") {
       setGrowAmount(0);
-      setSpendAmount(pendingReward.totalAmount);
       return;
     }
     const grow = Math.max(0, Math.min(num, pendingReward.totalAmount));
     setGrowAmount(grow);
-    setSpendAmount(pendingReward.totalAmount - grow);
     setError(null);
   };
 
   const handleSubmit = () => {
-    const total = spendAmount + growAmount;
-    if (spendAmount < 0 || growAmount < 0) {
+    const total = spendAmount + saveAmount + growAmount;
+    if (spendAmount < 0 || saveAmount < 0 || growAmount < 0) {
       setError("Amounts cannot be negative.");
       return;
     }
     if (total !== pendingReward.totalAmount) {
-      setError(`Spend + Grow must equal ${pendingReward.totalAmount} tokens.`);
+      setError(`Spend + Save + Grow must equal ${pendingReward.totalAmount} tokens.`);
       return;
     }
-    onClaim(spendAmount, growAmount);
+    onClaim(spendAmount, saveAmount, growAmount);
   };
 
   return (
@@ -86,7 +96,7 @@ export function ClaimRewardModal({
 
         <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-4">
           <p className="text-sm font-bold text-gray-800 mb-2">
-            Recommended: {recommended.spend} Spend, {recommended.grow} Grow
+            Recommended: {recommended.spend} Spend, {recommended.save} Save, {recommended.grow} Grow
           </p>
           <Button variant="secondary" onClick={handleUseRecommended} className="w-full">
             Use recommended split
@@ -109,6 +119,19 @@ export function ClaimRewardModal({
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">
+              💾 Save tokens (set aside)
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={pendingReward.totalAmount}
+              value={saveAmount}
+              onChange={(e) => handleSaveChange(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-300 font-display text-lg focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">
               🌱 Grow tokens (saves for later)
             </label>
             <input
@@ -121,7 +144,7 @@ export function ClaimRewardModal({
             />
           </div>
           <p className="text-sm text-gray-500">
-            Total: {spendAmount + growAmount} / {pendingReward.totalAmount} tokens
+            Total: {spendAmount + saveAmount + growAmount} / {pendingReward.totalAmount} tokens
           </p>
         </div>
 
@@ -137,7 +160,7 @@ export function ClaimRewardModal({
             variant="success"
             onClick={handleSubmit}
             className="flex-1"
-            disabled={spendAmount + growAmount !== pendingReward.totalAmount}
+            disabled={spendAmount + saveAmount + growAmount !== pendingReward.totalAmount}
           >
             Claim tokens!
           </Button>

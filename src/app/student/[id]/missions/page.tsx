@@ -12,7 +12,7 @@ import { getStudentMissions, getStudent, getRecommendedSplit, getPendingRewardsF
 import { Mission } from "@/types";
 
 const SPEND_VS_GROW_FALLBACK =
-  "You earned tokens! 70% goes to Spend (use now) and 30% goes to Grow (saves for later).";
+  "You earned tokens! Some go to Spend (use now), some to Save, and some to Grow (locked and growing).";
 
 function getActionHint(status: string): string | undefined {
   switch (status) {
@@ -43,14 +43,14 @@ export default function MyMissionsPage() {
     setSplitExplanation(null);
     setLoadingSplitExplanation(true);
     const reward = mission.currentReward;
-    const { spend: spendAmount, grow: growAmount } = getRecommendedSplit(reward);
+    const { spend: spendAmount, save: saveAmount, grow: growAmount } = getRecommendedSplit(reward);
     fetch("/api/gemini/explain", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         type: "SPEND_VS_GROW",
         studentName: student?.name ?? "Student",
-        context: { totalReward: reward, spendAmount, growAmount },
+        context: { totalReward: reward, spendAmount, saveAmount, growAmount },
       }),
     })
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Failed"))))

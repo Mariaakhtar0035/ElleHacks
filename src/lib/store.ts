@@ -1,6 +1,6 @@
 import { Student, Mission, Reward, MissionStatus, MissionBandColor, BalanceHistoryEntry, PendingReward } from "@/types";
 import { generateHistoryFromCurrent } from "@/lib/growthCalculator";
-import { RECOMMENDED_SPEND_RATIO, RECOMMENDED_GROW_RATIO } from "@/lib/constants";
+import { RECOMMENDED_SPEND_RATIO, RECOMMENDED_SAVE_RATIO, RECOMMENDED_GROW_RATIO } from "@/lib/constants";
 
 // In-memory data store - prepopulated with varied activity
 let students: Student[] = [
@@ -9,22 +9,23 @@ let students: Student[] = [
     name: "Alex",
     pin: "1234",
     spendTokens: 165,
+    saveTokens: 60,
     growTokens: 95,
     assignedMissions: ["mission-1", "mission-5"],
     purchasedRewards: ["reward-2"],
     balanceHistory: [
-      { week: 1, spendBalance: 20, growBalance: 10 },
-      { week: 2, spendBalance: 55, growBalance: 22 },
-      { week: 3, spendBalance: 48, growBalance: 35 },
-      { week: 4, spendBalance: 72, growBalance: 48 },
-      { week: 5, spendBalance: 95, growBalance: 62 },
-      { week: 6, spendBalance: 78, growBalance: 72 },
-      { week: 7, spendBalance: 102, growBalance: 78 },
-      { week: 8, spendBalance: 125, growBalance: 82 },
-      { week: 9, spendBalance: 118, growBalance: 85 },
-      { week: 10, spendBalance: 142, growBalance: 88 },
-      { week: 11, spendBalance: 158, growBalance: 91 },
-      { week: 12, spendBalance: 165, growBalance: 95 },
+      { week: 1, spendBalance: 20, saveBalance: 6, growBalance: 10 },
+      { week: 2, spendBalance: 55, saveBalance: 12, growBalance: 22 },
+      { week: 3, spendBalance: 48, saveBalance: 18, growBalance: 35 },
+      { week: 4, spendBalance: 72, saveBalance: 24, growBalance: 48 },
+      { week: 5, spendBalance: 95, saveBalance: 30, growBalance: 62 },
+      { week: 6, spendBalance: 78, saveBalance: 36, growBalance: 72 },
+      { week: 7, spendBalance: 102, saveBalance: 42, growBalance: 78 },
+      { week: 8, spendBalance: 125, saveBalance: 48, growBalance: 82 },
+      { week: 9, spendBalance: 118, saveBalance: 52, growBalance: 85 },
+      { week: 10, spendBalance: 142, saveBalance: 54, growBalance: 88 },
+      { week: 11, spendBalance: 158, saveBalance: 58, growBalance: 91 },
+      { week: 12, spendBalance: 165, saveBalance: 60, growBalance: 95 },
     ],
   },
   {
@@ -32,20 +33,21 @@ let students: Student[] = [
     name: "Jordan",
     pin: "1234",
     spendTokens: 45,
+    saveTokens: 30,
     growTokens: 82,
     assignedMissions: ["mission-2"],
     purchasedRewards: ["reward-1", "reward-2"],
     balanceHistory: [
-      { week: 1, spendBalance: 30, growBalance: 15 },
-      { week: 2, spendBalance: 65, growBalance: 28 },
-      { week: 3, spendBalance: 52, growBalance: 38 },
-      { week: 4, spendBalance: 38, growBalance: 48 },
-      { week: 5, spendBalance: 55, growBalance: 55 },
-      { week: 6, spendBalance: 42, growBalance: 62 },
-      { week: 7, spendBalance: 48, growBalance: 68 },
-      { week: 8, spendBalance: 45, growBalance: 74 },
-      { week: 9, spendBalance: 50, growBalance: 78 },
-      { week: 10, spendBalance: 45, growBalance: 82 },
+      { week: 1, spendBalance: 30, saveBalance: 3, growBalance: 15 },
+      { week: 2, spendBalance: 65, saveBalance: 6, growBalance: 28 },
+      { week: 3, spendBalance: 52, saveBalance: 9, growBalance: 38 },
+      { week: 4, spendBalance: 38, saveBalance: 12, growBalance: 48 },
+      { week: 5, spendBalance: 55, saveBalance: 15, growBalance: 55 },
+      { week: 6, spendBalance: 42, saveBalance: 18, growBalance: 62 },
+      { week: 7, spendBalance: 48, saveBalance: 21, growBalance: 68 },
+      { week: 8, spendBalance: 45, saveBalance: 24, growBalance: 74 },
+      { week: 9, spendBalance: 50, saveBalance: 27, growBalance: 78 },
+      { week: 10, spendBalance: 45, saveBalance: 30, growBalance: 82 },
     ],
   },
   {
@@ -53,6 +55,7 @@ let students: Student[] = [
     name: "Sam",
     pin: "1234",
     spendTokens: 230,
+    saveTokens: 90,
     growTokens: 120,
     assignedMissions: ["mission-3"],
     purchasedRewards: ["reward-1", "reward-3"],
@@ -62,6 +65,7 @@ let students: Student[] = [
     name: "Riley",
     pin: "1234",
     spendTokens: 88,
+    saveTokens: 40,
     growTokens: 65,
     assignedMissions: ["mission-4"],
     purchasedRewards: [],
@@ -71,6 +75,7 @@ let students: Student[] = [
     name: "Morgan",
     pin: "1234",
     spendTokens: 142,
+    saveTokens: 55,
     growTokens: 55,
     assignedMissions: ["mission-6"],
     purchasedRewards: ["reward-2", "reward-4"],
@@ -80,6 +85,7 @@ let students: Student[] = [
     name: "Casey",
     pin: "1234",
     spendTokens: 100,
+    saveTokens: 35,
     growTokens: 50,
     assignedMissions: [],
     purchasedRewards: [],
@@ -370,7 +376,7 @@ export function getBalanceHistory(studentId: string): BalanceHistoryEntry[] {
   if (student.balanceHistory && student.balanceHistory.length > 0) {
     return student.balanceHistory;
   }
-  return generateHistoryFromCurrent(student.spendTokens, student.growTokens);
+  return generateHistoryFromCurrent(student.spendTokens, student.saveTokens, student.growTokens);
 }
 
 export function updateStudent(id: string, data: Partial<Student>): Student | null {
@@ -404,6 +410,7 @@ export function createStudent(data: CreateStudentData): Student {
     name: data.name.trim(),
     pin: (data.pin && /^\d{4}$/.test(data.pin)) ? data.pin : "1234",
     spendTokens: 100,
+    saveTokens: 40,
     growTokens: 50,
     assignedMissions: [],
     purchasedRewards: [],
@@ -526,11 +533,11 @@ export function assignMission(missionId: string, studentId: string): Mission | n
 
 let pendingRewards: PendingReward[] = [];
 
-export function getRecommendedSplit(total: number): { spend: number; grow: number } {
-  return {
-    spend: Math.floor(total * RECOMMENDED_SPEND_RATIO),
-    grow: Math.floor(total * RECOMMENDED_GROW_RATIO),
-  };
+export function getRecommendedSplit(total: number): { spend: number; save: number; grow: number } {
+  const spend = Math.floor(total * RECOMMENDED_SPEND_RATIO);
+  const save = Math.floor(total * RECOMMENDED_SAVE_RATIO);
+  const grow = Math.max(0, total - spend - save);
+  return { spend, save, grow };
 }
 
 export function getPendingRewardsForStudent(studentId: string): PendingReward[] {
@@ -540,12 +547,13 @@ export function getPendingRewardsForStudent(studentId: string): PendingReward[] 
 export function claimPendingReward(
   pendingId: string,
   spendAmount: number,
+  saveAmount: number,
   growAmount: number
 ): { mission: Mission; student: Student } | null {
   const index = pendingRewards.findIndex((p) => p.id === pendingId);
   if (index === -1) return null;
   const pending = pendingRewards[index]!;
-  if (spendAmount < 0 || growAmount < 0 || spendAmount + growAmount !== pending.totalAmount) {
+  if (spendAmount < 0 || saveAmount < 0 || growAmount < 0 || spendAmount + saveAmount + growAmount !== pending.totalAmount) {
     return null;
   }
   const student = getStudent(pending.studentId);
@@ -553,6 +561,7 @@ export function claimPendingReward(
   if (!student || !mission) return null;
 
   student.spendTokens += spendAmount;
+  student.saveTokens += saveAmount;
   student.growTokens += growAmount;
   updateStudent(student.id, student);
   pendingRewards.splice(index, 1);

@@ -91,7 +91,7 @@ export function StudentFormModal({
         </div>
 
         <p className="text-sm text-gray-600">
-          New students start with 100 Spend tokens and 50 Grow tokens.
+          New students start with 100 Spend tokens, 40 Save tokens, and 50 Grow tokens.
         </p>
 
         <div className="flex gap-3 pt-2">

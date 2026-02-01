@@ -4,6 +4,7 @@ export type MissionStatus = "AVAILABLE" | "REQUESTED" | "IN_PROGRESS" | "COMPLET
 export interface BalanceHistoryEntry {
   week: number;
   spendBalance: number;
+  saveBalance: number;
   growBalance: number;
 }
 
@@ -12,6 +13,7 @@ export interface Student {
   name: string;
   spendTokens: number;
   growTokens: number;
+  saveTokens: number;
   assignedMissions: string[]; // mission IDs
   purchasedRewards: string[]; // reward IDs
   /** Optional; if missing, generated from current balances */
@@ -51,6 +53,7 @@ export interface Reward {
 export interface TokenBalance {
   spend: number;
   grow: number;
+  save: number;
 }
 
 export interface PendingReward {
@@ -63,13 +66,14 @@ export interface PendingReward {
 
 export type ExplanationType = "SUPPLY_DEMAND" | "SPEND_VS_GROW" | "COMPOUND_GROWTH" | "MISSION_APPROVAL" | "NARRATOR";
 
-export type NarratorPage = "dashboard" | "marketplace" | "missions" | "grow" | "shop";
+export type NarratorPage = "dashboard" | "marketplace" | "missions" | "grow" | "save" | "shop";
 
 export interface NarratorContext {
   page: NarratorPage;
   studentName: string;
   spendTokens?: number;
   growTokens?: number;
+  saveTokens?: number;
   missionCount?: number;
   availableMissions?: number;
   recentAction?: string;

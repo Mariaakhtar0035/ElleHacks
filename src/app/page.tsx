@@ -32,8 +32,8 @@ const FEATURES = [
     icon: "🃏",
   },
   {
-    title: "Spend & Grow Tokens",
-    description: "Earn Spend tokens for rewards and Grow tokens that multiply over time.",
+    title: "Spend, Save & Grow Tokens",
+    description: "Earn Spend tokens for rewards, Save tokens for goals, and Grow tokens that multiply over time.",
     icon: "🪙",
   },
   {
@@ -146,14 +146,14 @@ export default function HomePage() {
               <div className="text-5xl mb-3">🏆</div>
               <h3 className="font-display font-bold text-xl text-gray-900 mb-2">Earn Tokens</h3>
               <p className="text-gray-600 text-sm leading-relaxed">
-                Complete missions and get Spend + Grow tokens. Use them in the reward shop!
+                Complete missions and get Spend + Save + Grow tokens. Use them in the reward shop!
               </p>
             </div>
             <div className="landing-card-hover rounded-2xl border-2 border-blue-200 bg-blue-50/80 p-6 text-center shadow-lg">
               <div className="text-5xl mb-3">📈</div>
               <h3 className="font-display font-bold text-xl text-gray-900 mb-2">Grow Your Vault</h3>
               <p className="text-gray-600 text-sm leading-relaxed">
-                Put tokens in Grow and watch them increase over time—like real savings.
+                Put tokens in Save and Grow to watch them build over time—like real savings.
               </p>
             </div>
             <div className="landing-card-hover rounded-2xl border-2 border-emerald-200 bg-emerald-50/80 p-6 text-center shadow-lg">
@@ -203,6 +203,13 @@ export default function HomePage() {
                       <TokenDisplay
                         amount={student.spendTokens}
                         type="spend"
+                        size="sm"
+                      />
+                    </div>
+                    <div className="flex justify-center">
+                      <TokenDisplay
+                        amount={student.saveTokens}
+                        type="save"
                         size="sm"
                       />
                     </div>
