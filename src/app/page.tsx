@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
 import { StudentAvatar } from "@/components/StudentAvatar";
 import { getStudents } from "@/lib/store";
+import { useEffect, useState } from "react";
+import SuccessMoneySprinkle from "@/components/SuccessMoneySprinkle";
 
 function scrollToChoosePlayer() {
   document.getElementById("choose-player")?.scrollIntoView({ behavior: "smooth" });
@@ -48,9 +50,12 @@ const FEATURES = [
 
 export default function HomePage() {
   const students = getStudents();
+  const [showSprinkle, setShowSprinkle] = useState(true);
 
   return (
     <div className="min-h-screen landing-board">
+      {showSprinkle && <SuccessMoneySprinkle />}
+
       {/* ========== HERO ========== */}
       <section className="relative px-4 pt-14 pb-20 md:pt-24 md:pb-28 overflow-hidden">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-14">
