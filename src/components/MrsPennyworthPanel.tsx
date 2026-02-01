@@ -207,6 +207,12 @@ export function MrsPennyworthPanel({
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value.slice(0, MAX_QUESTION_LENGTH))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e as unknown as React.FormEvent);
+                }
+              }}
               placeholder="Ask about tokens, saving, spending..."
               rows={2}
               maxLength={MAX_QUESTION_LENGTH}
