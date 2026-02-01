@@ -10,6 +10,7 @@ const FALLBACK_TEXTS: Record<ExplanationType, string> = {
   MONEY_STORY_INSIGHT: "You're building a great money story! Keep saving, spending wisely, and watching your Grow tokens grow.",
   SPENDING_BEHAVIOR_INSIGHT: "Here's a tip: try saving a little before you spend. Your future self will thank you!",
   TRANSFER_INSIGHT: "Moving tokens to Grow helps them grow over time! Moving to Spend lets you use them now. It's like planting seeds vs picking fruit!",
+  MISSION_SUGGESTION: "Pick a mission few others want—you'll get the full reward! Or try a popular one if you like the challenge.",
 };
 
 const NARRATOR_FALLBACKS: Record<NarratorPage, string> = {
@@ -124,6 +125,30 @@ Give exactly 3 suggestions. No greeting. No sign-off like "Keep up the great wor
 Be specific to their data. Kid-friendly, ages 7-12. CRITICAL: Each line must be a complete sentence. Stop after the 3rd suggestion. Never cut off mid-sentence.`;
 }
 
+function buildMissionSuggestionPrompt(studentName: string, context: any): string {
+  const availableMissions = (context.availableMissions || []) as Array<{ title: string; baseReward: number; currentReward: number; requestCount: number }>;
+  const bestValue = (context.bestValue || []) as Array<{ title: string; baseReward: number }>;
+  const popular = (context.popular || []) as Array<{ title: string; currentReward: number; requestCount: number }>;
+
+  const availableSummary = availableMissions.length
+    ? availableMissions.slice(0, 8).map((m) => `${m.title} (${m.currentReward} tokens, ${m.requestCount} requested)`).join("; ")
+    : "No missions available.";
+  const bestValueSummary = bestValue.length
+    ? bestValue.slice(0, 3).map((m) => `${m.title} (${m.baseReward} tokens)`).join("; ")
+    : "None.";
+  const popularSummary = popular.length
+    ? popular.slice(0, 3).map((m) => `${m.title} (${m.requestCount} requests, ${m.currentReward} tokens)`).join("; ")
+    : "None.";
+
+  return `You are Mrs. Pennyworth, a friendly financial guide for a classroom economy game. ${studentName} is a 7-12 year old student looking at the mission marketplace.
+
+Available missions: ${availableSummary}
+Best value (full price, few requests): ${bestValueSummary}
+Popular (many requests, lower price): ${popularSummary}
+
+Suggest to ${studentName} which mission to pick. Consider: missions with few requests pay more (best value). Popular missions pay less but might be fun. Give 1-2 sentences naming a specific mission and why. Kid-friendly. CRITICAL: Name an actual mission from the list above.`;
+}
+
 function buildPrompt(
   type: ExplanationType,
   studentName: string,
@@ -137,6 +162,9 @@ function buildPrompt(
   }
   if (type === "SPENDING_BEHAVIOR_INSIGHT") {
     return buildSpendingBehaviorPrompt(studentName, context);
+  }
+  if (type === "MISSION_SUGGESTION") {
+    return buildMissionSuggestionPrompt(studentName, context);
   }
   
   const prompts: Record<string, string> = {

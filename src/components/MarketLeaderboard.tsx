@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Mission } from "@/types";
 import { Card } from "@/components/ui/Card";
+import { MarketSupplyDemandChart } from "@/components/MarketSupplyDemandChart";
+
+const MISSION_SUGGESTION_FALLBACK =
+  "Pick a mission few others want—you'll get the full reward! Or try a popular one if you like the challenge.";
 
 interface MissionStats {
   mission: Mission;
@@ -12,9 +16,13 @@ interface MissionStats {
 
 interface MarketLeaderboardProps {
   missions: Mission[];
+  studentId?: string;
+  studentName?: string;
 }
 
-export function MarketLeaderboard({ missions }: MarketLeaderboardProps) {
+export function MarketLeaderboard({ missions, studentId, studentName }: MarketLeaderboardProps) {
+  const [suggestion, setSuggestion] = useState<string | null>(null);
+  const [loadingSuggestion, setLoadingSuggestion] = useState(false);
   // Use useMemo to recalculate when missions prop changes
   const missionStats: MissionStats[] = useMemo(() => {
     return missions.map((mission) => {
@@ -44,6 +52,46 @@ export function MarketLeaderboard({ missions }: MarketLeaderboardProps) {
     );
   }, [missionStats]);
 
+  // Available missions (not assigned) for suggestion context
+  const { availableMissions, bestValue, popular } = useMemo(() => {
+    const available = missions.filter((m) => !m.assignedStudentId);
+    const best = [...available].sort((a, b) => b.baseReward - a.baseReward).slice(0, 5);
+    const pop = [...available].sort((a, b) => b.requestCount - a.requestCount).slice(0, 5);
+    return {
+      availableMissions: available.map((m) => ({
+        title: m.title,
+        baseReward: m.baseReward,
+        currentReward: m.currentReward,
+        requestCount: m.requestCount,
+      })),
+      bestValue: best.filter((m) => m.requestCount === 0).map((m) => ({ title: m.title, baseReward: m.baseReward })),
+      popular: pop.filter((m) => m.requestCount > 0).map((m) => ({
+        title: m.title,
+        currentReward: m.currentReward,
+        requestCount: m.requestCount,
+      })),
+    };
+  }, [missions]);
+
+  const handleAskSuggestion = () => {
+    if (!studentName) return;
+    setSuggestion(null);
+    setLoadingSuggestion(true);
+    fetch("/api/gemini/explain", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "MISSION_SUGGESTION",
+        studentName,
+        context: { availableMissions, bestValue, popular },
+      }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Failed"))))
+      .then((data) => setSuggestion(data.explanation ?? MISSION_SUGGESTION_FALLBACK))
+      .catch(() => setSuggestion(MISSION_SUGGESTION_FALLBACK))
+      .finally(() => setLoadingSuggestion(false));
+  };
+
   // Calculate market statistics
   const { totalMissions, requestedMissions, totalRequests, avgRequestsPerMission, mostRequestedMission } = useMemo(() => {
     const totalMissions = missions.length;
@@ -58,6 +106,44 @@ export function MarketLeaderboard({ missions }: MarketLeaderboardProps) {
 
   return (
     <div className="space-y-6">
+      {/* Educational Note - How Supply & Demand Works */}
+      <Card className="p-6 bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300">
+        <h3 className="text-lg font-bold mb-2 text-amber-900">
+          💡 How Supply & Demand Works
+        </h3>
+        <p className="text-gray-700">
+          When more students request the same mission, its price drops! This
+          teaches us about <strong>supply and demand</strong>: when something is
+          popular (high demand), but there's only limited availability (limited
+          supply), the value changes. In our classroom market, popular missions
+          become less valuable as more students want to do them.
+        </p>
+        {studentName && (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={handleAskSuggestion}
+              className="text-amber-700 hover:text-amber-800 font-bold underline"
+            >
+              What mission should I pick?
+            </button>
+            {loadingSuggestion && (
+              <div className="mt-2 h-10 bg-amber-100/50 rounded-xl animate-pulse flex items-center justify-center">
+                <span className="text-sm text-amber-800">Mrs. Pennyworth is thinking…</span>
+              </div>
+            )}
+            {suggestion && !loadingSuggestion && (
+              <p className="mt-2 text-gray-700 font-medium border-l-4 border-amber-400 pl-4 py-2 bg-amber-50/80 rounded-r-xl">
+                {suggestion}
+              </p>
+            )}
+          </div>
+        )}
+      </Card>
+
+      {/* Supply & Demand Graph */}
+      <MarketSupplyDemandChart missions={missions} />
+
       {/* Market Overview */}
       <Card className="p-6 bg-gradient-to-r from-purple-50 to-blue-50">
         <h2 className="text-2xl font-bold mb-4 text-purple-900">
@@ -278,20 +364,6 @@ export function MarketLeaderboard({ missions }: MarketLeaderboardProps) {
             </tbody>
           </table>
         </div>
-      </Card>
-
-      {/* Educational Note */}
-      <Card className="p-6 bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300">
-        <h3 className="text-lg font-bold mb-2 text-amber-900">
-          💡 How Supply & Demand Works
-        </h3>
-        <p className="text-gray-700">
-          When more students request the same mission, its price drops! This
-          teaches us about <strong>supply and demand</strong>: when something is
-          popular (high demand), but there's only limited availability (limited
-          supply), the value changes. In our classroom market, popular missions
-          become less valuable as more students want to do them.
-        </p>
       </Card>
     </div>
   );

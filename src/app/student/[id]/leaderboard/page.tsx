@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { Mission } from "@/types";
 import { MarketLeaderboard } from "@/components/MarketLeaderboard";
+import { getStudent } from "@/lib/store";
 
 export default function StudentLeaderboardPage() {
+  const params = useParams();
+  const studentId = params.id as string;
+  const student = getStudent(studentId);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -78,9 +83,10 @@ export default function StudentLeaderboardPage() {
           Refresh now
         </button>
       </div>
-      <MarketLeaderboard 
-        missions={missions} 
-        key={lastUpdate.getTime()}
+      <MarketLeaderboard
+        missions={missions}
+        studentId={studentId}
+        studentName={student?.name}
       />
     </div>
   );

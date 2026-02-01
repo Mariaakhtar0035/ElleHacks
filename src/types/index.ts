@@ -66,7 +66,7 @@ export interface PendingReward {
   totalAmount: number;
 }
 
-export type ExplanationType = "SUPPLY_DEMAND" | "SPEND_VS_GROW" | "COMPOUND_GROWTH" | "MISSION_APPROVAL" | "NARRATOR" | "MONEY_STORY_INSIGHT" | "SPENDING_BEHAVIOR_INSIGHT" | "TRANSFER_INSIGHT";
+export type ExplanationType = "SUPPLY_DEMAND" | "SPEND_VS_GROW" | "COMPOUND_GROWTH" | "MISSION_APPROVAL" | "NARRATOR" | "MONEY_STORY_INSIGHT" | "SPENDING_BEHAVIOR_INSIGHT" | "TRANSFER_INSIGHT" | "MISSION_SUGGESTION";
 
 export type NarratorPage = "dashboard" | "marketplace" | "missions" | "grow" | "save" | "shop";
 
