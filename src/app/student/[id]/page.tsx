@@ -98,26 +98,28 @@ export default function StudentDashboard() {
           </p>
         </Card>
 
-        <Card borderColor="border-blue-500" className="p-6 relative">
-          <div className="flex items-center gap-2 mb-3">
+        <Card borderColor="border-blue-500" className="p-6 relative text-center">
+          <div className="flex items-center justify-center gap-2 mb-3">
             <span className="text-3xl">🌱</span>
             <h3 className="font-display font-bold text-xl text-gray-800">
               Grow Tokens
             </h3>
             <span
-              className="text-lg ml-auto"
+              className="text-lg"
               title="Locked and growing! You can't spend these yet."
             >
               🔒
             </span>
           </div>
-          <TokenDisplay
-            amount={student.growTokens}
-            type="grow"
-            size="lg"
-            showLabel={false}
-            showLock={false}
-          />
+          <div className="flex justify-center">
+            <TokenDisplay
+              amount={student.growTokens}
+              type="grow"
+              size="lg"
+              showLabel={false}
+              showLock={false}
+            />
+          </div>
           <p className="text-sm text-gray-600 mt-2 font-medium gentle-pulse">
             Locked & growing!
           </p>
