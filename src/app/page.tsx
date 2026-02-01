@@ -195,32 +195,9 @@ export default function HomePage() {
                       palette="pastel"
                     />
                   </div>
-                  <h3 className="font-display font-bold text-3xl text-gray-900 mb-6">
+                  <h3 className="font-display font-bold text-3xl text-gray-900">
                     {student.name}
                   </h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-center">
-                      <TokenDisplay
-                        amount={student.spendTokens}
-                        type="spend"
-                        size="sm"
-                      />
-                    </div>
-                    <div className="flex justify-center">
-                      <TokenDisplay
-                        amount={student.saveTokens}
-                        type="save"
-                        size="sm"
-                      />
-                    </div>
-                    <div className="flex justify-center">
-                      <TokenDisplay
-                        amount={student.growTokens}
-                        type="grow"
-                        size="sm"
-                      />
-                    </div>
-                  </div>
                 </Card>
               </Link>
             ))}

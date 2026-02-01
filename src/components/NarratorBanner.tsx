@@ -7,6 +7,7 @@ interface NarratorBannerProps {
   studentName: string;
   page: NarratorPage;
   spendTokens?: number;
+  saveTokens?: number;
   growTokens?: number;
   missionCount?: number;
   availableMissions?: number;
@@ -18,6 +19,7 @@ export function NarratorBanner({
   studentName,
   page,
   spendTokens,
+  saveTokens,
   growTokens,
   missionCount,
   availableMissions,
@@ -45,6 +47,7 @@ export function NarratorBanner({
             context: {
               page,
               spendTokens,
+              saveTokens,
               growTokens,
               missionCount,
               availableMissions,
@@ -108,6 +111,7 @@ function getFallbackMessage(page: NarratorPage): string {
     marketplace: "Request missions to earn tokens. Remember, popular missions pay less!",
     missions: "Complete your missions and ask your teacher to approve them.",
     grow: "Your Grow tokens are earning 2% every week. Patience pays off!",
+    save: "Saving helps you reach your goals! Set aside tokens for something special.",
     shop: "Spend your tokens wisely. Save some for later too!",
   };
   
