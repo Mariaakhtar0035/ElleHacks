@@ -6,6 +6,8 @@ import { TokenDisplay } from "@/components/ui/TokenDisplay";
 import { Button } from "@/components/ui/Button";
 import { transferTokens } from "@/lib/store";
 
+type Direction = "toGrow" | "toSpend";
+
 interface TransferTokensCardProps {
   studentId: string;
   spendTokens: number;
@@ -19,50 +21,30 @@ export function TransferTokensCard({
   growTokens,
   onTransfer,
 }: TransferTokensCardProps) {
-  const [toGrowAmount, setToGrowAmount] = useState("");
-  const [toSpendAmount, setToSpendAmount] = useState("");
+  const [amount, setAmount] = useState("");
+  const [direction, setDirection] = useState<Direction>("toGrow");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const handleMoveToGrow = () => {
-    setError(null);
-    setSuccess(null);
-    const amount = parseInt(toGrowAmount, 10);
-    if (isNaN(amount) || amount <= 0) {
-      setError("Enter a valid amount.");
-      return;
-    }
-    if (amount > spendTokens) {
-      setError(`You only have ${spendTokens} Spend tokens.`);
-      return;
-    }
-    const result = transferTokens(studentId, amount, "toGrow");
-    if (result) {
-      setToGrowAmount("");
-      setSuccess(`Moved ${amount} tokens to Grow!`);
-      onTransfer();
-      setTimeout(() => setSuccess(null), 3000);
-    } else {
-      setError("Could not transfer. Try again.");
-    }
-  };
+  const maxAmount = direction === "toGrow" ? spendTokens : growTokens;
+  const canTransfer = direction === "toGrow" ? spendTokens > 0 : growTokens > 0;
 
-  const handleMoveToSpend = () => {
+  const handleTransfer = () => {
     setError(null);
     setSuccess(null);
-    const amount = parseInt(toSpendAmount, 10);
-    if (isNaN(amount) || amount <= 0) {
+    const num = parseInt(amount, 10);
+    if (isNaN(num) || num <= 0) {
       setError("Enter a valid amount.");
       return;
     }
-    if (amount > growTokens) {
-      setError(`You only have ${growTokens} Grow tokens.`);
+    if (num > maxAmount) {
+      setError(`You only have ${maxAmount} ${direction === "toGrow" ? "Spend" : "Grow"} tokens.`);
       return;
     }
-    const result = transferTokens(studentId, amount, "toSpend");
+    const result = transferTokens(studentId, num, direction);
     if (result) {
-      setToSpendAmount("");
-      setSuccess(`Moved ${amount} tokens to Spend!`);
+      setAmount("");
+      setSuccess(`Moved ${num} tokens ${direction === "toGrow" ? "to Grow" : "to Spend"}!`);
       onTransfer();
       setTimeout(() => setSuccess(null), 3000);
     } else {
@@ -79,65 +61,75 @@ export function TransferTokensCard({
         We recommend putting about 30% in Grow for long-term growth!
       </p>
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row gap-3 items-end">
-          <div className="flex-1">
-            <label className="block text-sm font-bold text-gray-700 mb-1">
-              Move to Grow
-            </label>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Amount to move
+          </label>
+          <div className="flex gap-2 items-stretch">
             <input
               type="number"
               min={1}
-              max={spendTokens}
-              placeholder={`Max: ${spendTokens}`}
-              value={toGrowAmount}
-              onChange={(e) => setToGrowAmount(e.target.value)}
-              className="w-full px-4 py-2 rounded-xl border-2 border-gray-300 font-display focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              max={maxAmount}
+              placeholder={`Max: ${maxAmount}`}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="flex-1 min-w-0 px-4 py-2 rounded-xl border-2 border-gray-300 font-display focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
             />
+            <div
+              className="flex gap-1 shrink-0"
+              role="tablist"
+              aria-label="Move tokens to Grow or Spend"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={direction === "toGrow"}
+                onClick={() => setDirection("toGrow")}
+                className={`px-3 py-2 rounded-lg font-display font-bold text-xs transition-all border-2 ${
+                  direction === "toGrow"
+                    ? "bg-emerald-500 text-white border-emerald-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:border-emerald-400"
+                }`}
+              >
+                🌱 Grow
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={direction === "toSpend"}
+                onClick={() => setDirection("toSpend")}
+                className={`px-3 py-2 rounded-lg font-display font-bold text-xs transition-all border-2 ${
+                  direction === "toSpend"
+                    ? "bg-amber-500 text-white border-amber-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:border-amber-400"
+                }`}
+              >
+                💰 Spend
+              </button>
+            </div>
           </div>
-          <Button
-            variant="success"
-            onClick={handleMoveToGrow}
-            disabled={spendTokens === 0 || !toGrowAmount}
-          >
-            🌱 To Grow
-          </Button>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 items-end">
-          <div className="flex-1">
-            <label className="block text-sm font-bold text-gray-700 mb-1">
-              Move to Spend
-            </label>
-            <input
-              type="number"
-              min={1}
-              max={growTokens}
-              placeholder={`Max: ${growTokens}`}
-              value={toSpendAmount}
-              onChange={(e) => setToSpendAmount(e.target.value)}
-              className="w-full px-4 py-2 rounded-xl border-2 border-gray-300 font-display focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
-            />
+        <Button
+          variant={direction === "toGrow" ? "success" : "secondary"}
+          onClick={handleTransfer}
+          disabled={!canTransfer || !amount}
+          className="w-full py-2 text-sm"
+        >
+          Submit
+        </Button>
+        <div className="mt-4 flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <TokenDisplay amount={spendTokens} type="spend" size="sm" showLabel={false} />
+            <span className="text-gray-600">Spend</span>
           </div>
-          <Button
-            variant="secondary"
-            onClick={handleMoveToSpend}
-            disabled={growTokens === 0 || !toSpendAmount}
-          >
-            💰 To Spend
-          </Button>
+          <div className="flex items-center gap-2">
+            <TokenDisplay amount={growTokens} type="grow" size="sm" showLabel={false} />
+            <span className="text-gray-600">Grow</span>
+          </div>
         </div>
+        {error && <p className="mt-3 text-red-600 font-medium text-sm">{error}</p>}
+        {success && <p className="mt-3 text-emerald-600 font-medium text-sm">{success}</p>}
       </div>
-      <div className="mt-4 flex items-center gap-4 text-sm">
-        <div className="flex items-center gap-2">
-          <TokenDisplay amount={spendTokens} type="spend" size="sm" showLabel={false} />
-          <span className="text-gray-600">Spend</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <TokenDisplay amount={growTokens} type="grow" size="sm" showLabel={false} />
-          <span className="text-gray-600">Grow</span>
-        </div>
-      </div>
-      {error && <p className="mt-3 text-red-600 font-medium text-sm">{error}</p>}
-      {success && <p className="mt-3 text-emerald-600 font-medium text-sm">{success}</p>}
     </Card>
   );
 }

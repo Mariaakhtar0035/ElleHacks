@@ -46,14 +46,12 @@ export default function GrowTokensPage() {
         <h2 className="font-display font-bold text-2xl text-gray-900 mb-4">
           Current Grow Tokens
         </h2>
-        <div className="flex justify-center">
-          <TokenDisplay
-            amount={student.growTokens}
-            type="grow"
-            size="lg"
-            showLabel={false}
-          />
-        </div>
+        <TokenDisplay
+          amount={student.growTokens}
+          type="grow"
+          size="lg"
+          showLabel={false}
+        />
         <p className="text-gray-600 mt-4 font-medium">
           These tokens are locked and growing at 2% per week!
         </p>
