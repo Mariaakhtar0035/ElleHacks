@@ -4,9 +4,17 @@ import React, { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
 import { Button } from "@/components/ui/Button";
-import { transferTokens } from "@/lib/store";
+import { transferTokens, type TokenBucket } from "@/lib/store";
 
-type Direction = "toGrow" | "toSpend";
+const BUCKETS: { value: TokenBucket; label: string; icon: string }[] = [
+  { value: "spend", label: "Spend", icon: "💰" },
+  { value: "save", label: "Save", icon: "💾" },
+  { value: "grow", label: "Grow", icon: "🌱" },
+];
+
+function getBucketLabel(bucket: TokenBucket): string {
+  return BUCKETS.find((b) => b.value === bucket)?.label ?? bucket;
+}
 
 interface TransferTokensCardProps {
   studentId: string;
@@ -29,14 +37,16 @@ export function TransferTokensCard({
   onTransfer,
 }: TransferTokensCardProps) {
   const [amount, setAmount] = useState("");
-  const [direction, setDirection] = useState<Direction>("toGrow");
+  const [from, setFrom] = useState<TokenBucket>("spend");
+  const [to, setTo] = useState<TokenBucket>("grow");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [transferExplanation, setTransferExplanation] = useState<string | null>(null);
   const [loadingTransferExplanation, setLoadingTransferExplanation] = useState(false);
 
-  const maxAmount = direction === "toGrow" ? spendTokens : growTokens;
-  const canTransfer = direction === "toGrow" ? spendTokens > 0 : growTokens > 0;
+  const balances = { spend: spendTokens, save: saveTokens, grow: growTokens };
+  const maxAmount = balances[from];
+  const canTransfer = from !== to && maxAmount > 0;
 
   const handleExplainTransfer = () => {
     setTransferExplanation(null);
@@ -65,13 +75,13 @@ export function TransferTokensCard({
       return;
     }
     if (num > maxAmount) {
-      setError(`You only have ${maxAmount} ${direction === "toGrow" ? "Spend" : "Grow"} tokens.`);
+      setError(`You only have ${maxAmount} ${getBucketLabel(from)} tokens.`);
       return;
     }
-    const result = transferTokens(studentId, num, direction);
+    const result = transferTokens(studentId, num, from, to);
     if (result) {
       setAmount("");
-      setSuccess(`Moved ${num} tokens ${direction === "toGrow" ? "to Grow" : "to Spend"}!`);
+      setSuccess(`Moved ${num} tokens from ${getBucketLabel(from)} to ${getBucketLabel(to)}!`);
       onTransfer();
       setTimeout(() => setSuccess(null), 3000);
     } else {
@@ -107,54 +117,73 @@ export function TransferTokensCard({
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-bold text-gray-700 mb-2">
-            Amount to move
+            Move from
           </label>
-          <div className="flex gap-2 items-stretch">
-            <input
-              type="number"
-              min={1}
-              max={maxAmount}
-              placeholder={`Max: ${maxAmount}`}
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="flex-1 min-w-0 px-4 py-2 rounded-xl border-2 border-gray-300 font-display focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-            />
-            <div
-              className="flex gap-1 shrink-0"
-              role="tablist"
-              aria-label="Move tokens to Grow or Spend"
-            >
+          <div className="flex gap-2 flex-wrap" role="group" aria-label="Source bucket">
+            {BUCKETS.map((b) => (
               <button
+                key={b.value}
                 type="button"
-                role="tab"
-                aria-selected={direction === "toGrow"}
-                onClick={() => setDirection("toGrow")}
+                onClick={() => {
+                  setFrom(b.value);
+                  if (to === b.value) setTo(BUCKETS.find((x) => x.value !== b.value)!.value);
+                }}
                 className={`px-3 py-2 rounded-lg font-display font-bold text-xs transition-all border-2 ${
-                  direction === "toGrow"
-                    ? "bg-emerald-500 text-white border-emerald-600"
-                    : "bg-white text-gray-700 border-gray-300 hover:border-emerald-400"
+                  from === b.value
+                    ? b.value === "spend"
+                      ? "bg-amber-500 text-white border-amber-600"
+                      : b.value === "save"
+                        ? "bg-sky-500 text-white border-sky-600"
+                        : "bg-emerald-500 text-white border-emerald-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:border-gray-400"
                 }`}
               >
-                🌱 Grow
+                {b.icon} {b.label}
               </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={direction === "toSpend"}
-                onClick={() => setDirection("toSpend")}
-                className={`px-3 py-2 rounded-lg font-display font-bold text-xs transition-all border-2 ${
-                  direction === "toSpend"
-                    ? "bg-amber-500 text-white border-amber-600"
-                    : "bg-white text-gray-700 border-gray-300 hover:border-amber-400"
-                }`}
-              >
-                💰 Spend
-              </button>
-            </div>
+            ))}
           </div>
         </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Move to
+          </label>
+          <div className="flex gap-2 flex-wrap" role="group" aria-label="Destination bucket">
+            {BUCKETS.filter((b) => b.value !== from).map((b) => (
+              <button
+                key={b.value}
+                type="button"
+                onClick={() => setTo(b.value)}
+                className={`px-3 py-2 rounded-lg font-display font-bold text-xs transition-all border-2 ${
+                  to === b.value
+                    ? b.value === "spend"
+                      ? "bg-amber-500 text-white border-amber-600"
+                      : b.value === "save"
+                        ? "bg-sky-500 text-white border-sky-600"
+                        : "bg-emerald-500 text-white border-emerald-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:border-gray-400"
+                }`}
+              >
+                {b.icon} {b.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Amount to move
+          </label>
+          <input
+            type="number"
+            min={1}
+            max={maxAmount}
+            placeholder={`Max: ${maxAmount}`}
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="w-full px-4 py-2 rounded-xl border-2 border-gray-300 font-display focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+          />
+        </div>
         <Button
-          variant={direction === "toGrow" ? "success" : "secondary"}
+          variant={canTransfer ? "success" : "secondary"}
           onClick={handleTransfer}
           disabled={!canTransfer || !amount}
           className="w-full py-2 text-sm"

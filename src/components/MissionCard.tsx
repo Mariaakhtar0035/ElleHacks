@@ -174,13 +174,11 @@ export function MissionCard({
                 ) : isTeacher ? (
                   "—"
                 ) : (
-                  <>
-                    {mission.requestCount}{" "}
-                    {mission.requestCount === 1 ? "student" : "students"}{" "}
-                    requested
-                    {requestedByNames.length > 0 &&
-                      ` (${requestedByNames.slice(0, 3).join(", ")}${requestedByNames.length > 3 ? ` +${requestedByNames.length - 3}` : ""})`}
-                  </>
+                  requestedByNames.length > 0
+                    ? requestedByNames.join(", ")
+                    : mission.requestCount > 0
+                      ? `${mission.requestCount} requested`
+                      : "—"
                 )}
               </span>
             </div>

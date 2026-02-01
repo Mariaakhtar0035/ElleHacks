@@ -6,7 +6,18 @@ import { getFallbackText } from "@/lib/gemini";
 import type { BalanceHistoryEntry } from "@/types";
 import type { Reward } from "@/types";
 
+const CACHE_KEY_PREFIX = "mrs-pennyworth-spending-insight";
+
+function getCacheKey(studentId?: string): string {
+  return `${CACHE_KEY_PREFIX}-${studentId ?? "default"}`;
+}
+
+function getToday(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 interface SpendingBehaviorCardProps {
+  studentId?: string;
   studentName: string;
   history: BalanceHistoryEntry[];
   purchasedRewardItems: Reward[];
@@ -20,6 +31,7 @@ interface SpendingBehaviorCardProps {
 const SPENDING_BEHAVIOR_FALLBACK = "Here's a tip: try saving a little before you spend. Your future self will thank you!";
 
 export function SpendingBehaviorCard({
+  studentId,
   studentName,
   history,
   purchasedRewardItems,
@@ -34,6 +46,26 @@ export function SpendingBehaviorCard({
 
   useEffect(() => {
     let isMounted = true;
+    const cacheKey = getCacheKey(studentId);
+    const today = getToday();
+
+    function tryRestoreFromCache(): boolean {
+      if (typeof window === "undefined") return false;
+      try {
+        const raw = localStorage.getItem(cacheKey);
+        if (!raw) return false;
+        const parsed = JSON.parse(raw) as { insight?: string; date?: string };
+        if (parsed.insight && parsed.date === today) {
+          setInsight(parsed.insight);
+          setLoading(false);
+          return true;
+        }
+      } catch {
+        // ignore parse errors
+      }
+      return false;
+    }
+
     async function fetchInsight() {
       setLoading(true);
       try {
@@ -57,16 +89,24 @@ export function SpendingBehaviorCard({
         });
         if (!response.ok) throw new Error("Failed to fetch");
         const data = await response.json();
-        if (isMounted) setInsight(data.explanation ?? SPENDING_BEHAVIOR_FALLBACK);
+        const text = data.explanation ?? SPENDING_BEHAVIOR_FALLBACK;
+        if (isMounted) {
+          setInsight(text);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(cacheKey, JSON.stringify({ insight: text, date: today }));
+          }
+        }
       } catch {
         if (isMounted) setInsight(getFallbackText("SPENDING_BEHAVIOR_INSIGHT"));
       } finally {
         if (isMounted) setLoading(false);
       }
     }
+
+    if (tryRestoreFromCache()) return;
     fetchInsight();
     return () => { isMounted = false; };
-  }, [studentName, history, purchasedRewardItems, currentSpend, currentSave, currentGrow, saveGoal, availableRewards]);
+  }, [studentId, studentName, history, purchasedRewardItems, currentSpend, currentSave, currentGrow, saveGoal, availableRewards]);
 
   const insightIcons = ["💡", "🎯", "💰", "🌟"];
   const insightColors = [

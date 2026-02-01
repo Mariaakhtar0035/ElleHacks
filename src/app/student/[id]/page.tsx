@@ -110,8 +110,8 @@ export default function StudentDashboard() {
           </p>
         </Card>
 
-        <Card borderColor="border-blue-500" className="p-6 relative text-center">
-          <div className="flex items-center justify-center gap-2 mb-3">
+        <Card borderColor="border-blue-500" className="p-6 relative">
+          <div className="flex items-center gap-2 mb-3">
             <span className="text-3xl">🌱</span>
             <h3 className="font-display font-bold text-xl text-gray-800">
               Grow Tokens
@@ -123,15 +123,13 @@ export default function StudentDashboard() {
               🔒
             </span>
           </div>
-          <div className="flex justify-center">
-            <TokenDisplay
+          <TokenDisplay
               amount={student.growTokens}
               type="grow"
               size="lg"
               showLabel={false}
               showLock={false}
-            />
-          </div>
+          />
           <p className="text-sm text-gray-600 mt-2 font-medium gentle-pulse">
             Locked & growing!
           </p>
@@ -155,6 +153,7 @@ export default function StudentDashboard() {
 
       {/* Mrs. Pennyworth's Spending Insights */}
       <SpendingBehaviorCard
+        studentId={studentId}
         studentName={student.name}
         history={history}
         purchasedRewardItems={purchasedRewardItems}

@@ -139,7 +139,6 @@ export default function StudentLayout({
                   <h1 className="font-display font-bold text-xl md:text-2xl text-gray-900">
                     {student.name}&apos;s Board
                   </h1>
-                  <p className="text-sm text-gray-500">Your game dashboard</p>
                 </div>
               </div>
             </div>

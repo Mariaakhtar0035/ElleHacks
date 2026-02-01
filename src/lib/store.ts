@@ -573,29 +573,37 @@ export function claimPendingReward(
   return { mission, student: updatedStudent! };
 }
 
+export type TokenBucket = "spend" | "save" | "grow";
+
 export function transferTokens(
   studentId: string,
   amount: number,
-  direction: "toSpend" | "toGrow"
+  from: TokenBucket,
+  to: TokenBucket
 ): { student: Student } | null {
   const student = getStudent(studentId);
   if (!student) return null;
   if (amount <= 0) return null;
-  
-  let updatedStudent;
-  if (direction === "toSpend") {
-    if (student.growTokens < amount) return null;
-    updatedStudent = updateStudent(studentId, {
-      growTokens: student.growTokens - amount,
-      spendTokens: student.spendTokens + amount,
-    });
-  } else {
-    if (student.spendTokens < amount) return null;
-    updatedStudent = updateStudent(studentId, {
-      spendTokens: student.spendTokens - amount,
-      growTokens: student.growTokens + amount,
-    });
-  }
+  if (from === to) return null;
+
+  const balances = {
+    spend: student.spendTokens,
+    save: student.saveTokens,
+    grow: student.growTokens,
+  };
+
+  if (balances[from] < amount) return null;
+
+  const updated = { ...balances };
+  updated[from] -= amount;
+  updated[to] += amount;
+
+  const updatedStudent = updateStudent(studentId, {
+    spendTokens: updated.spend,
+    saveTokens: updated.save,
+    growTokens: updated.grow,
+  });
+
   return { student: updatedStudent! };
 }
 
