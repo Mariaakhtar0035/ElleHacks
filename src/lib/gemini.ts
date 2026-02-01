@@ -70,8 +70,9 @@ function buildPrompt(
   return prompts[type] || "";
 }
 
-// Use gemini-2.5-flash per Google AI quickstart (gemini-1.5-flash deprecated)
-const GEMINI_MODEL = "gemini-2.5-flash";
+// Use gemini-2.5-flash-lite for highest free tier (15 RPM, 1000 RPD)
+// Fallback: gemini-2.0-flash (10 RPM, 250 RPD)
+const GEMINI_MODEL = "gemini-2.5-flash-lite";
 
 const SAFETY_SETTINGS = [
   { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },

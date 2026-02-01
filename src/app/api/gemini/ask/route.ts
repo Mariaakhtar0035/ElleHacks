@@ -42,12 +42,12 @@ function parseRecentMessages(body: Record<string, unknown>): RecentMessage[] {
   if (!Array.isArray(arr)) return [];
   return (arr as unknown[])
     .slice(-4)
-    .filter((m): m is { role: string; content: string } => 
-      typeof m === "object" && m !== null && 
-      (m.role === "user" || m.role === "assistant") && 
-      typeof (m as Record<string, unknown>).content === "string"
-    )
-    .map((m) => ({ role: m.role as "user" | "assistant", content: String(m.content).slice(0, 200) }));
+    .filter((m): m is { role: "user" | "assistant"; content: string } => {
+      if (typeof m !== "object" || m === null) return false;
+      const r = m as Record<string, unknown>;
+      return (r.role === "user" || r.role === "assistant") && typeof r.content === "string";
+    })
+    .map((m) => ({ role: m.role, content: String(m.content).slice(0, 200) }));
 }
 
 export async function POST(request: NextRequest) {
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     const context = parseContext(body);
     const recentMessages = parseRecentMessages(body);
-    const hasKey = !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "AIzaSyAImWi9FkdQteiyQ1gh20sR9Qt9tl5TyAg");
+    const hasKey = !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "your_api_key_here");
     if (!hasKey) {
       console.warn("[Ask Narrator] GEMINI_API_KEY not set or is placeholder. Add a key in .env.local and restart dev server.");
     }
