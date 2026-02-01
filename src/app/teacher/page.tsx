@@ -178,9 +178,14 @@ export default function TeacherDashboard() {
                 Teacher Dashboard
               </h1>
             </div>
-            <Link href="/">
-              <Button variant="secondary">Back to Home</Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link href="/leaderboard">
+                <Button variant="primary">🏆 Market Leaderboard</Button>
+              </Link>
+              <Link href="/">
+                <Button variant="secondary">Back to Home</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -514,8 +519,11 @@ export default function TeacherDashboard() {
                     const student = students.find(
                       (s) => s.id === mission.assignedStudentId,
                     );
-                    const { spend: spendAmount, save: saveAmount, grow: growAmount } =
-                      getRecommendedSplit(mission.currentReward);
+                    const {
+                      spend: spendAmount,
+                      save: saveAmount,
+                      grow: growAmount,
+                    } = getRecommendedSplit(mission.currentReward);
                     return (
                       <div
                         key={mission.id}
@@ -540,7 +548,8 @@ export default function TeacherDashboard() {
                                 <span className="font-bold text-gray-700">
                                   Reward Split:
                                 </span>{" "}
-                                {spendAmount} Spend + {saveAmount} Save + {growAmount} Grow tokens
+                                {spendAmount} Spend + {saveAmount} Save +{" "}
+                                {growAmount} Grow tokens
                               </div>
                             </div>
                           </div>

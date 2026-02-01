@@ -8,7 +8,14 @@ import { TokenDisplay } from "@/components/ui/TokenDisplay";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { ClaimRewardModal } from "@/components/ClaimRewardModal";
-import { getStudent, getStudentMissions, getRewards, getPendingRewardsForStudent, claimPendingReward, getBalanceHistory } from "@/lib/store";
+import {
+  getStudent,
+  getStudentMissions,
+  getRewards,
+  getPendingRewardsForStudent,
+  claimPendingReward,
+  getBalanceHistory,
+} from "@/lib/store";
 import { TokenChip } from "@/components/ui/TokenChip";
 import { TransferTokensCard } from "@/components/TransferTokensCard";
 import { GrowthComparisonChart } from "@/components/GrowthComparisonChart";
@@ -21,15 +28,27 @@ import type { PendingReward } from "@/types";
 export default function StudentDashboard() {
   const params = useParams();
   const studentId = params.id as string;
-  const [claimingPending, setClaimingPending] = useState<PendingReward | null>(null);
+  const [claimingPending, setClaimingPending] = useState<PendingReward | null>(
+    null,
+  );
   const [refreshKey, setRefreshKey] = useState(0);
   const refresh = () => setRefreshKey((r) => r + 1);
 
   const student = useMemo(() => getStudent(studentId), [studentId, refreshKey]);
-  const missions = useMemo(() => getStudentMissions(studentId), [studentId, refreshKey]);
-  const pendingRewards = useMemo(() => getPendingRewardsForStudent(studentId), [studentId, refreshKey]);
+  const missions = useMemo(
+    () => getStudentMissions(studentId),
+    [studentId, refreshKey],
+  );
+  const pendingRewards = useMemo(
+    () => getPendingRewardsForStudent(studentId),
+    [studentId, refreshKey],
+  );
 
-  const handleClaim = (spendAmount: number, saveAmount: number, growAmount: number) => {
+  const handleClaim = (
+    spendAmount: number,
+    saveAmount: number,
+    growAmount: number,
+  ) => {
     if (!claimingPending) return;
     claimPendingReward(claimingPending.id, spendAmount, saveAmount, growAmount);
     setClaimingPending(null);
@@ -39,12 +58,13 @@ export default function StudentDashboard() {
   if (!student) return null;
 
   const completedMissions = missions.filter((m) => m.status === "COMPLETED");
-  const totalEarned = student.spendTokens + student.saveTokens + student.growTokens;
+  const totalEarned =
+    student.spendTokens + student.saveTokens + student.growTokens;
   const history = getBalanceHistory(studentId);
   const whatIfGrow = computeWhatIfGrow(history);
   const rewards = getRewards();
   const purchasedRewardItems = rewards.filter((r) =>
-    student.purchasedRewards.includes(r.id)
+    student.purchasedRewards.includes(r.id),
   );
   const availableRewards = rewards
     .filter((r) => !r.soldOut && !student.purchasedRewards.includes(r.id))
@@ -60,7 +80,9 @@ export default function StudentDashboard() {
             🎉 You have tokens to claim!
           </h2>
           <p className="text-gray-700 mb-4">
-            Your teacher approved {pendingRewards.length} mission{pendingRewards.length > 1 ? "s" : ""}. Choose how to split your tokens between Spend (use now) and Grow (save for later).
+            Your teacher approved {pendingRewards.length} mission
+            {pendingRewards.length > 1 ? "s" : ""}. Choose how to split your
+            tokens between Spend (use now) and Grow (save for later).
           </p>
           <div className="space-y-3">
             {pendingRewards.map((pending) => (
@@ -69,10 +91,17 @@ export default function StudentDashboard() {
                 className="flex items-center justify-between p-4 rounded-xl bg-white border-2 border-amber-200"
               >
                 <div>
-                  <h3 className="font-display font-bold text-gray-900">{pending.missionTitle}</h3>
-                  <p className="text-sm text-gray-600">{pending.totalAmount} tokens to claim</p>
+                  <h3 className="font-display font-bold text-gray-900">
+                    {pending.missionTitle}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {pending.totalAmount} tokens to claim
+                  </p>
                 </div>
-                <Button variant="success" onClick={() => setClaimingPending(pending)}>
+                <Button
+                  variant="success"
+                  onClick={() => setClaimingPending(pending)}
+                >
                   Claim tokens!
                 </Button>
               </div>
@@ -110,8 +139,11 @@ export default function StudentDashboard() {
           </p>
         </Card>
 
-        <Card borderColor="border-blue-500" className="p-6 relative">
-          <div className="flex items-center gap-2 mb-3">
+        <Card
+          borderColor="border-blue-500"
+          className="p-6 relative text-center"
+        >
+          <div className="flex items-center justify-center gap-2 mb-3">
             <span className="text-3xl">🌱</span>
             <h3 className="font-display font-bold text-xl text-gray-800">
               Grow Tokens
@@ -124,11 +156,11 @@ export default function StudentDashboard() {
             </span>
           </div>
           <TokenDisplay
-              amount={student.growTokens}
-              type="grow"
-              size="lg"
-              showLabel={false}
-              showLock={false}
+            amount={student.growTokens}
+            type="grow"
+            size="lg"
+            showLabel={false}
+            showLock={false}
           />
           <p className="text-sm text-gray-600 mt-2 font-medium gentle-pulse">
             Locked & growing!
@@ -228,7 +260,11 @@ export default function StudentDashboard() {
                     <Badge status={mission.status} />
                   </div>
                 </div>
-                <TokenChip amount={mission.currentReward} type="spend" size="md" />
+                <TokenChip
+                  amount={mission.currentReward}
+                  type="spend"
+                  size="md"
+                />
               </div>
             ))}
           </div>

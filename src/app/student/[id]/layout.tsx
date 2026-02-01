@@ -7,7 +7,13 @@ import { TokenDisplay } from "@/components/ui/TokenDisplay";
 import { StudentAvatar } from "@/components/StudentAvatar";
 import { MrsPennyworthPanel } from "@/components/MrsPennyworthPanel";
 import { MrsPennyworthAvatar } from "@/components/MrsPennyworthAvatar";
-import { getStudent, getStudentMissions, getAvailableMissions, getMissions, getRewards } from "@/lib/store";
+import {
+  getStudent,
+  getStudentMissions,
+  getAvailableMissions,
+  getMissions,
+  getRewards,
+} from "@/lib/store";
 import { NarratorPage } from "@/types";
 
 const SESSION_KEY = "student_session";
@@ -67,18 +73,29 @@ export default function StudentLayout({
   if (!sessionChecked) {
     return (
       <div className="min-h-screen bg-[#d2e5d2] flex items-center justify-center">
-        <div className="animate-pulse text-gray-600 font-display font-bold">Loading...</div>
+        <div className="animate-pulse text-gray-600 font-display font-bold">
+          Loading...
+        </div>
       </div>
     );
   }
 
   const navItems = [
     { href: `/student/${studentId}`, label: "Dashboard", icon: "🏠" },
-    { href: `/student/${studentId}/marketplace`, label: "Marketplace", icon: "🏪" },
-    { href: `/student/${studentId}/missions`, label: "My Missions", icon: "📋" },
+    {
+      href: `/student/${studentId}/marketplace`,
+      label: "Marketplace",
+      icon: "🏪",
+    },
+    {
+      href: `/student/${studentId}/missions`,
+      label: "My Missions",
+      icon: "📋",
+    },
     { href: `/student/${studentId}/grow`, label: "Grow Tokens", icon: "📈" },
     { href: `/student/${studentId}/save`, label: "Save Tokens", icon: "💰" },
     { href: `/student/${studentId}/shop`, label: "Reward Shop", icon: "🎁" },
+    { href: `/student/${studentId}/leaderboard`, label: "Market", icon: "🏆" },
   ];
 
   // Determine current page for narrator
@@ -88,6 +105,7 @@ export default function StudentLayout({
     if (pathname.endsWith("/grow")) return "grow";
     if (pathname.endsWith("/save")) return "save";
     if (pathname.endsWith("/shop")) return "shop";
+    if (pathname.endsWith("/leaderboard")) return "marketplace"; // Treat leaderboard as marketplace context
     return "dashboard";
   };
 
@@ -96,8 +114,12 @@ export default function StudentLayout({
   const availableMissions = getAvailableMissions();
   const allMissions = getMissions();
   const allRewards = getRewards();
-  const completedMissions = allMissions.filter((m) => m.assignedStudentId === studentId && m.status === "COMPLETED");
-  const purchasedRewardItems = allRewards.filter((r) => student.purchasedRewards.includes(r.id));
+  const completedMissions = allMissions.filter(
+    (m) => m.assignedStudentId === studentId && m.status === "COMPLETED",
+  );
+  const purchasedRewardItems = allRewards.filter((r) =>
+    student.purchasedRewards.includes(r.id),
+  );
   const askNarratorContext = {
     spendTokens: student.spendTokens,
     saveTokens: student.saveTokens,
@@ -109,8 +131,13 @@ export default function StudentLayout({
     purchasedRewardsCount: student.purchasedRewards.length,
     purchasedRewardTitles: purchasedRewardItems.map((r) => r.title),
     availableMissionsCount: availableMissions.length,
-    availableMissions: availableMissions.map((m) => ({ title: m.title, reward: m.currentReward })),
-    availableRewards: allRewards.filter((r) => !r.soldOut).map((r) => ({ title: r.title, cost: r.cost })),
+    availableMissions: availableMissions.map((m) => ({
+      title: m.title,
+      reward: m.currentReward,
+    })),
+    availableRewards: allRewards
+      .filter((r) => !r.soldOut)
+      .map((r) => ({ title: r.title, cost: r.cost })),
   };
 
   return (
@@ -145,13 +172,29 @@ export default function StudentLayout({
 
             <div className="flex gap-3 flex-wrap items-center">
               <div className="bg-amber-50/90 rounded-xl border border-amber-200 px-4 py-2 shadow-sm">
-                <TokenDisplay amount={student.spendTokens} type="spend" size="sm" />
+                <TokenDisplay
+                  amount={student.spendTokens}
+                  type="spend"
+                  size="sm"
+                />
               </div>
               <div className="bg-sky-50/90 rounded-xl border border-sky-200 px-4 py-2 shadow-sm">
-                <TokenDisplay amount={student.saveTokens} type="save" size="sm" />
+                <TokenDisplay
+                  amount={student.saveTokens}
+                  type="save"
+                  size="sm"
+                />
               </div>
-              <div className="bg-blue-50/90 rounded-xl border border-blue-200 px-4 py-2 relative shadow-sm" title="Locked and growing! You can't spend these yet.">
-                <TokenDisplay amount={student.growTokens} type="grow" size="sm" showLock />
+              <div
+                className="bg-blue-50/90 rounded-xl border border-blue-200 px-4 py-2 relative shadow-sm"
+                title="Locked and growing! You can't spend these yet."
+              >
+                <TokenDisplay
+                  amount={student.growTokens}
+                  type="grow"
+                  size="sm"
+                  showLock
+                />
               </div>
               <button
                 type="button"
