@@ -54,25 +54,20 @@ export default function HomePage() {
       {/* ========== HERO ========== */}
       <section className="relative px-4 pt-14 pb-20 md:pt-24 md:pb-28 overflow-hidden">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-14">
-          <div className="text-center md:text-left md:max-w-xl">
-            <h1 className="font-display font-bold text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-gray-900 mb-5 md:mb-6 leading-tight tracking-tight">
+          <div className="text-center md:text-left md:max-w-2xl">
+            <h1 className="font-display font-bold text-6xl sm:text-7xl md:text-8xl lg:text-9xl text-gray-900 mb-6 md:mb-7 leading-tight tracking-tight">
               Welcome to{" "}
               <span className="text-transparent bg-clip-text bg-linear-to-r from-amber-500 via-orange-500 to-rose-500">
                 Finity!
               </span>
-              <span className="inline-flex items-center gap-4 ml-4">
-                <span className="dice-bounce text-5xl md:text-6xl opacity-90" aria-hidden>🎲</span>
-                <span className="token-spin-hover text-5xl md:text-6xl" aria-hidden>🪙</span>
-                <span className="dice-bounce text-5xl md:text-6xl opacity-80" aria-hidden style={{ animationDelay: "0.5s" }}>🏠</span>
-              </span>
             </h1>
-            <p className="text-xl md:text-2xl text-gray-600 mb-8 font-medium leading-relaxed max-w-md">
+            <p className="text-2xl md:text-3xl text-gray-600 mb-10 font-medium leading-relaxed max-w-xl">
               Complete missions, earn tokens, and watch your money grow!
             </p>
             <Button
               variant="primary"
               onClick={scrollToChoosePlayer}
-              className="text-lg px-8 py-3.5 rounded-xl shadow-lg token-spin-hover w-full sm:w-auto"
+              className="text-xl px-10 py-4 rounded-xl shadow-lg token-spin-hover w-full sm:w-auto"
             >
               Join the Game
             </Button>
@@ -81,7 +76,7 @@ export default function HomePage() {
             <img 
               src="/hero-placeholder.png" 
               alt="Finity hero illustration" 
-              className="w-64 h-64 object-cover"
+              className="dice-bounce token-spin-hover w-[32rem] h-[32rem] md:w-[36rem] md:h-[36rem] object-contain"
             />
           </div>
         </div>
@@ -90,7 +85,7 @@ export default function HomePage() {
       {/* ========== FEATURES (Flat print-style cards) ========== */}
       <section className="px-4 py-16 md:py-24">
         <div className="max-w-6xl mx-auto">
-          <h2 className="font-display font-bold text-3xl md:text-4xl text-gray-900 text-center mb-4">
+          <h2 className="font-bold uppercase text-3xl md:text-4xl text-gray-900 text-center mb-4">
             How It Works
           </h2>
           <p className="text-center text-gray-600 text-lg mb-12 max-w-2xl mx-auto">
@@ -135,7 +130,7 @@ export default function HomePage() {
       {/* ========== GAMIFICATION SECTION ========== */}
       <section className="px-4 py-16 md:py-24 bg-linear-to-b from-amber-50/80 to-transparent">
         <div className="max-w-6xl mx-auto">
-          <h2 className="font-display font-bold text-3xl md:text-4xl text-gray-900 text-center mb-4">
+          <h2 className="font-bold uppercase text-3xl md:text-4xl text-gray-900 text-center mb-4">
             Play the Economy
           </h2>
           <p className="text-center text-gray-600 text-lg mb-12 max-w-2xl mx-auto">
@@ -170,7 +165,7 @@ export default function HomePage() {
       {/* ========== CHOOSE YOUR PLAYER (CTA target) ========== */}
       <section id="choose-player" className="px-4 py-16 md:py-24 scroll-mt-8">
         <div className="max-w-6xl mx-auto">
-          <h2 className="font-display font-bold text-3xl md:text-4xl text-gray-900 text-center mb-4">
+          <h2 className="font-bold uppercase text-3xl md:text-4xl text-gray-900 text-center mb-4">
             Choose Your Player
           </h2>
           <p className="text-xl text-gray-700 text-center mb-12">
@@ -192,6 +187,7 @@ export default function HomePage() {
                       studentId={student.id}
                       studentName={student.name}
                       size="lg"
+                      palette="pastel"
                     />
                   </div>
                   <h3 className="font-display font-bold text-3xl text-gray-900 mb-6">

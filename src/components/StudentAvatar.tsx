@@ -13,6 +13,17 @@ const AVATAR_COLORS = [
   "from-indigo-400 to-indigo-600 text-white",
 ] as const;
 
+const AVATAR_PASTEL_COLORS = [
+  "from-blue-200 to-blue-300 text-blue-900",
+  "from-emerald-200 to-emerald-300 text-emerald-900",
+  "from-amber-200 to-amber-300 text-amber-900",
+  "from-purple-200 to-purple-300 text-purple-900",
+  "from-rose-200 to-rose-300 text-rose-900",
+  "from-teal-200 to-teal-300 text-teal-900",
+  "from-orange-200 to-orange-300 text-orange-900",
+  "from-indigo-200 to-indigo-300 text-indigo-900",
+] as const;
+
 function hashString(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -26,6 +37,7 @@ interface StudentAvatarProps {
   studentId: string;
   studentName: string;
   size?: "sm" | "md" | "lg";
+  palette?: "default" | "pastel";
   className?: string;
 }
 
@@ -39,10 +51,12 @@ export function StudentAvatar({
   studentId,
   studentName,
   size = "md",
+  palette = "default",
   className = "",
 }: StudentAvatarProps) {
-  const colorIndex = hashString(studentId) % AVATAR_COLORS.length;
-  const colorClasses = AVATAR_COLORS[colorIndex];
+  const colors = palette === "pastel" ? AVATAR_PASTEL_COLORS : AVATAR_COLORS;
+  const colorIndex = hashString(studentId) % colors.length;
+  const colorClasses = colors[colorIndex];
   const initial = (studentName?.charAt(0) || "?").toUpperCase();
   const sizeClasses = SIZE_CLASSES[size];
 

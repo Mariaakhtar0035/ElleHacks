@@ -167,24 +167,6 @@ export default function StudentDashboard() {
         )}
       </Card>
 
-      {/* Quick Actions */}
-      <Card borderColor="border-amber-400" className="p-8">
-        <h2 className="font-display font-bold text-2xl text-gray-900 mb-6">
-          Quick Actions
-        </h2>
-        <div className="flex flex-wrap gap-4">
-          <Link href={`/student/${studentId}/marketplace`}>
-            <Button variant="primary">🏪 Browse Missions</Button>
-          </Link>
-          <Link href={`/student/${studentId}/shop`}>
-            <Button variant="success">🎁 Visit Reward Shop</Button>
-          </Link>
-          <Link href={`/student/${studentId}/grow`}>
-            <Button variant="secondary">📈 See Growth Projection</Button>
-          </Link>
-        </div>
-      </Card>
-
       {/* Recent Activity */}
       <Card borderColor="border-gray-800" className="p-8">
         <h2 className="font-display font-bold text-2xl text-gray-900 mb-6">
