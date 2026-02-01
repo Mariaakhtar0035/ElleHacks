@@ -13,6 +13,7 @@ import { TokenChip } from "@/components/ui/TokenChip";
 import { TransferTokensCard } from "@/components/TransferTokensCard";
 import { GrowthComparisonChart } from "@/components/GrowthComparisonChart";
 import { SpendingBehaviorCard } from "@/components/SpendingBehaviorCard";
+import { PurchaseCard } from "@/components/PurchaseCard";
 import { computeWhatIfGrow } from "@/lib/growthCalculator";
 import { Badge } from "@/components/ui/Badge";
 import type { PendingReward } from "@/types";
@@ -189,17 +190,9 @@ export default function StudentDashboard() {
             No purchases yet. Visit the reward shop to spend your tokens!
           </p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {purchasedRewardItems.map((reward) => (
-              <div
-                key={reward.id}
-                className="flex flex-col items-center p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-200"
-              >
-                <span className="text-4xl mb-2">{reward.icon}</span>
-                <span className="font-display font-bold text-gray-900 text-center text-sm">
-                  {reward.title}
-                </span>
-              </div>
+              <PurchaseCard key={reward.id} reward={reward} />
             ))}
           </div>
         )}
