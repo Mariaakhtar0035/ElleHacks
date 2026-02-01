@@ -1,4 +1,5 @@
 import { ExplanationType, NarratorPage } from "@/types";
+import { callOpenRouter, hasOpenRouterKey } from "./openrouter";
 
 const FALLBACK_TEXTS: Record<ExplanationType, string> = {
   SUPPLY_DEMAND: "When lots of students want the same mission, the reward goes down. It's like when a popular toy costs more!",
@@ -189,7 +190,22 @@ export async function generateExplanation(
 ): Promise<string> {
   try {
     await waitForChatToFinish();
-    // Check if API key exists
+
+    const prompt = buildPrompt(type, studentName, context);
+
+    // #region agent log
+    const useOR = hasOpenRouterKey();
+    fetch('http://127.0.0.1:7242/ingest/f38e6ae9-aec7-427b-b7e9-fa2897140ff4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'gemini.ts:generateExplanation',message:'Provider check',data:{hasOpenRouterKey:useOR,hasKeySet:!!process.env.OPENROUTER_API_KEY},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
+    // #endregion
+    if (useOR) {
+      const response = await callOpenRouter(
+        [{ role: "user", content: prompt }],
+        150,
+        0.8
+      );
+      return response;
+    }
+
     if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === "your_api_key_here") {
       if (type === "NARRATOR" && context.page) {
         return NARRATOR_FALLBACKS[context.page as NarratorPage] || FALLBACK_TEXTS.NARRATOR;
@@ -197,12 +213,10 @@ export async function generateExplanation(
       return FALLBACK_TEXTS[type];
     }
 
-    const prompt = buildPrompt(type, studentName, context);
     const response = await callGeminiAPI(prompt);
-    
     return response;
   } catch (error) {
-    console.error("Gemini API error:", error);
+    console.error("Explanation API error:", error);
     if (type === "NARRATOR" && context.page) {
       return NARRATOR_FALLBACKS[context.page as NarratorPage] || FALLBACK_TEXTS.NARRATOR;
     }
@@ -310,20 +324,10 @@ export async function askNarrator(
   }
 
   try {
-    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === "your_api_key_here") {
-      return buildContextualFallback(context ?? null, studentName);
-    }
-
-    beginChatCall();
     const contextBlock = buildAskNarratorContextString(context ?? null);
     const conversationBlock = buildRecentConversationBlock(recentMessages || []);
 
-    const prompt = `You are Mrs. Pennyworth, a friendly, fun financial guide for a kid-friendly classroom economy game (Monopoly-themed). Speak directly to ${studentName}, age 7–12. Be enthusiastic, playful, and encouraging like a friendly financial coach.
-
-${conversationBlock}Use their current data:
-${contextBlock}
-
-Answer the question: "${trimmed}"
+    const systemPrompt = `You are Mrs. Pennyworth, a friendly, fun financial guide for a kid-friendly classroom economy game (Monopoly-themed). Speak directly to ${studentName}, age 7–12. Be enthusiastic, playful, and encouraging like a friendly financial coach.
 
 Rules:
 1. Keep answers fun, short (1–3 sentences), and kid-friendly. Under 3 sentences.
@@ -336,16 +340,49 @@ Scenario guides:
 - Greetings ("hi", "hello") → warm reply, optionally ask what they want to do. No token dump.
 - Spending ("Can I buy X?") → check Spend tokens, compare to cost, show what they can afford. Give options.
 - Missions ("Which missions can I do?") → list available missions with rewards. Explain 70% Spend, 30% Grow.
-- Grow tokens → explain current vs future amount (2% weekly), show excitement for waiting. Tie to piggy bank or bank interest.
+- Grow tokens → explain current vs future amount (2% weekly), show excitement for waiting. Tie to piggy bank or bank interest.`;
+
+    const userContent = `${conversationBlock}Use their current data:
+${contextBlock}
+
+Answer the question: "${trimmed}"
 
 Respond now—be specific, use their numbers, and vary your phrasing from any previous reply.`;
 
-    const response = await callGeminiAPI(prompt, 384, 0.9);
-    return response || buildContextualFallback(context ?? null, studentName);
+    const useOpenRouter = hasOpenRouterKey();
+    const useGemini =
+      process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "your_api_key_here";
+
+    if (!useOpenRouter && !useGemini) {
+      return buildContextualFallback(context ?? null, studentName);
+    }
+
+    beginChatCall();
+    try {
+      if (useOpenRouter) {
+        const response = await callOpenRouter(
+          [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userContent },
+          ],
+          384,
+          0.9
+        );
+        return response || buildContextualFallback(context ?? null, studentName);
+      }
+      const prompt = `${systemPrompt}
+
+${userContent}`;
+      const response = await callGeminiAPI(prompt, 384, 0.9);
+      return response || buildContextualFallback(context ?? null, studentName);
+    } catch (error) {
+      console.error("Ask narrator error:", error);
+      return buildContextualFallback(context ?? null, studentName);
+    } finally {
+      endChatCall();
+    }
   } catch (error) {
-    console.error("Gemini ask error:", error);
+    console.error("Ask narrator error:", error);
     return buildContextualFallback(context ?? null, studentName);
-  } finally {
-    endChatCall();
   }
 }

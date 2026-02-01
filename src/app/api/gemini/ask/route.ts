@@ -73,9 +73,10 @@ export async function POST(request: NextRequest) {
 
     const context = parseContext(body);
     const recentMessages = parseRecentMessages(body);
-    const hasKey = !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "your_api_key_here");
-    if (!hasKey) {
-      console.warn("[Ask Narrator] GEMINI_API_KEY not set or is placeholder. Add a key in .env.local and restart dev server.");
+    const hasOpenRouter = !!(process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_API_KEY !== "your_api_key_here");
+    const hasGemini = !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "your_api_key_here");
+    if (!hasOpenRouter && !hasGemini) {
+      console.warn("[Ask Narrator] No AI key. Add OPENROUTER_API_KEY (recommended for MLH credits) or GEMINI_API_KEY in .env.local");
     }
     const answer = await askNarrator(studentName.trim(), question, context, recentMessages);
 
