@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { TokenDisplay } from "@/components/ui/TokenDisplay";
 import { NarratorBanner } from "@/components/NarratorBanner";
-import { AskNarratorModal } from "@/components/AskNarratorModal";
+import { MrsPennyworthPanel } from "@/components/MrsPennyworthPanel";
+import { MrsPennyworthAvatar } from "@/components/MrsPennyworthAvatar";
 import { getStudent, getStudentMissions, getAvailableMissions, getMissions, getRewards } from "@/lib/store";
 import { NarratorPage } from "@/types";
 
@@ -67,8 +68,11 @@ export default function StudentLayout({
     completedMissionTitles: completedMissions.slice(-3).map((m) => m.title),
     purchasedRewardsCount: student.purchasedRewards.length,
     purchasedRewardTitles: purchasedRewardItems.map((r) => r.title),
+    availableMissionsCount: availableMissions.length,
+    availableMissions: availableMissions.map((m) => ({ title: m.title, reward: m.currentReward })),
+    availableRewards: allRewards.filter((r) => !r.soldOut).map((r) => ({ title: r.title, cost: r.cost })),
   };
-  const [showAskModal, setShowAskModal] = useState(false);
+  const [showPennyworthPanel, setShowPennyworthPanel] = useState(false);
 
   const avatarEmoji = student.id === "alex" ? "👦" : student.id === "jordan" ? "👧" : "🧒";
 
@@ -104,11 +108,24 @@ export default function StudentLayout({
               </div>
               <button
                 type="button"
-                onClick={() => setShowAskModal(true)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-violet-300 bg-violet-50 font-display font-bold text-violet-700 hover:bg-violet-100 hover:border-violet-400 hover:-translate-y-0.5 transition-all shadow-sm"
+                onClick={() => setShowPennyworthPanel((prev) => !prev)}
+                className="
+                  flex items-center gap-2 px-5 py-2.5
+                  rounded-full
+                  border-2 border-teal-300 bg-teal-50
+                  font-display font-bold text-teal-800
+                  hover:bg-teal-100 hover:border-teal-400
+                  hover:scale-105 hover:shadow-md
+                  transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2
+                "
+                aria-label="Ask Mrs. Pennyworth"
+                aria-expanded={showPennyworthPanel}
               >
-                <span aria-hidden>🎙️</span>
-                <span>Ask the Narrator</span>
+                <span className="shrink-0" aria-hidden>
+                  <MrsPennyworthAvatar state="idle" size="sm" />
+                </span>
+                <span>Ask Mrs. Pennyworth 💬</span>
               </button>
             </div>
           </div>
@@ -153,9 +170,10 @@ export default function StudentLayout({
         {children}
       </main>
 
-      <AskNarratorModal
-        isOpen={showAskModal}
-        onClose={() => setShowAskModal(false)}
+      <MrsPennyworthPanel
+        isOpen={showPennyworthPanel}
+        onClose={() => setShowPennyworthPanel(false)}
+        onToggle={() => setShowPennyworthPanel((prev) => !prev)}
         studentName={student.name}
         context={askNarratorContext}
       />

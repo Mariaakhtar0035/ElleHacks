@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { askNarrator, AskNarratorContext } from "@/lib/gemini";
+import { askNarrator, AskNarratorContext, type RecentMessage } from "@/lib/gemini";
 
 function parseContext(body: Record<string, unknown>): AskNarratorContext | undefined {
   const ctx = body.context;
@@ -23,7 +23,31 @@ function parseContext(body: Record<string, unknown>): AskNarratorContext | undef
   if (Array.isArray(c.completedMissionTitles)) result.completedMissionTitles = c.completedMissionTitles.filter((t: unknown) => typeof t === "string");
   if (typeof c.purchasedRewardsCount === "number") result.purchasedRewardsCount = c.purchasedRewardsCount;
   if (Array.isArray(c.purchasedRewardTitles)) result.purchasedRewardTitles = c.purchasedRewardTitles.filter((t: unknown) => typeof t === "string");
+  if (typeof c.availableMissionsCount === "number") result.availableMissionsCount = c.availableMissionsCount;
+  if (Array.isArray(c.availableMissions)) {
+    result.availableMissions = (c.availableMissions as unknown[]).filter((m): m is { title: string; reward: number } => 
+      typeof m === "object" && m !== null && typeof (m as Record<string, unknown>).title === "string" && typeof (m as Record<string, unknown>).reward === "number"
+    ).map((m) => ({ title: m.title, reward: m.reward }));
+  }
+  if (Array.isArray(c.availableRewards)) {
+    result.availableRewards = (c.availableRewards as unknown[]).filter((r): r is { title: string; cost: number } =>
+      typeof r === "object" && r !== null && typeof (r as Record<string, unknown>).title === "string" && typeof (r as Record<string, unknown>).cost === "number"
+    ).map((r) => ({ title: r.title, cost: r.cost }));
+  }
   return result;
+}
+
+function parseRecentMessages(body: Record<string, unknown>): RecentMessage[] {
+  const arr = body.recentMessages;
+  if (!Array.isArray(arr)) return [];
+  return (arr as unknown[])
+    .slice(-4)
+    .filter((m): m is { role: string; content: string } => 
+      typeof m === "object" && m !== null && 
+      (m.role === "user" || m.role === "assistant") && 
+      typeof (m as Record<string, unknown>).content === "string"
+    )
+    .map((m) => ({ role: m.role as "user" | "assistant", content: String(m.content).slice(0, 200) }));
 }
 
 export async function POST(request: NextRequest) {
@@ -45,11 +69,12 @@ export async function POST(request: NextRequest) {
     }
 
     const context = parseContext(body);
+    const recentMessages = parseRecentMessages(body);
     const hasKey = !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "your_api_key_here");
     if (!hasKey) {
       console.warn("[Ask Narrator] GEMINI_API_KEY not set or is placeholder. Add a key in .env.local and restart dev server.");
     }
-    const answer = await askNarrator(studentName.trim(), question, context);
+    const answer = await askNarrator(studentName.trim(), question, context, recentMessages);
 
     return NextResponse.json({ answer });
   } catch (error) {

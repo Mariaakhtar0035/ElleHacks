@@ -184,6 +184,16 @@ const ASK_FALLBACK = "I'm not sure right now. Ask your teacher or try again!";
 
 const MAX_QUESTION_LENGTH = 200;
 
+export interface AvailableReward {
+  title: string;
+  cost: number;
+}
+
+export interface AvailableMission {
+  title: string;
+  reward: number;
+}
+
 export interface AskNarratorContext {
   spendTokens: number;
   growTokens: number;
@@ -193,23 +203,44 @@ export interface AskNarratorContext {
   completedMissionTitles?: string[];
   purchasedRewardsCount?: number;
   purchasedRewardTitles?: string[];
+  availableMissionsCount?: number;
+  availableMissions?: AvailableMission[];
+  availableRewards?: AvailableReward[];
 }
 
-function buildAskNarratorContextString(ctx: AskNarratorContext | null, studentName: string): string {
-  if (!ctx) return "No specific context is available about the student.";
+export interface RecentMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+function buildAskNarratorContextString(ctx: AskNarratorContext | null): string {
+  if (!ctx) return "No context available.";
   const parts: string[] = [];
-  parts.push(`RIGHT NOW: ${studentName} has ${ctx.spendTokens} Spend tokens (use now) and ${ctx.growTokens} Grow tokens (saved, growing 2% weekly).`);
-  parts.push(`Current page: ${ctx.currentPage || "unknown"}`);
-  if (ctx.assignedMissionsCount !== undefined && ctx.assignedMissionsCount > 0) {
-    parts.push(`Active missions (${ctx.assignedMissionsCount}): ${(ctx.assignedMissionTitles || []).slice(0, 3).join(", ") || "—"}`);
-  }
-  if (ctx.completedMissionTitles?.length) {
-    parts.push(`Recently completed: ${ctx.completedMissionTitles.slice(0, 3).join(", ")}`);
-  }
-  if (ctx.purchasedRewardsCount !== undefined && ctx.purchasedRewardsCount > 0) {
-    parts.push(`Purchases (${ctx.purchasedRewardsCount}): ${(ctx.purchasedRewardTitles || []).slice(0, 3).join(", ") || "—"}`);
-  }
+  parts.push(`- Spend tokens: ${ctx.spendTokens}`);
+  parts.push(`- Grow tokens: ${ctx.growTokens} (locked, grows 2% weekly)`);
+  parts.push(`- Current page: ${ctx.currentPage || "unknown"}`);
+  const assigned = (ctx.assignedMissionTitles || []).slice(0, 5);
+  parts.push(`- Active missions: ${assigned.length ? assigned.join(", ") : "None"}`);
+  const available = (ctx.availableMissions || []).slice(0, 5);
+  parts.push(`- Available missions: ${available.length ? available.map((m) => `${m.title} (${m.reward} tokens)`).join("; ") : "None"}`);
+  const rewards = (ctx.availableRewards || []).slice(0, 5);
+  parts.push(`- Rewards (with costs): ${rewards.length ? rewards.map((r) => `${r.title} (${r.cost})`).join("; ") : "None"}`);
+  const completed = (ctx.completedMissionTitles || []).slice(0, 3);
+  if (completed.length) parts.push(`- Recently completed: ${completed.join(", ")}`);
+  const purchased = (ctx.purchasedRewardTitles || []).slice(0, 3);
+  if (purchased.length) parts.push(`- Purchased: ${purchased.join(", ")}`);
   return parts.join("\n");
+}
+
+function buildRecentConversationBlock(messages: RecentMessage[]): string {
+  if (!messages.length) return "";
+  return (
+    "Recent conversation:\n" +
+    messages
+      .map((m) => (m.role === "user" ? `Student: "${m.content}"` : `Mrs. Pennyworth: "${m.content}"`))
+      .join("\n") +
+    "\n\n"
+  );
 }
 
 function buildContextualFallback(ctx: AskNarratorContext | null, studentName: string): string {
@@ -230,7 +261,8 @@ function buildContextualFallback(ctx: AskNarratorContext | null, studentName: st
 export async function askNarrator(
   studentName: string,
   question: string,
-  context?: AskNarratorContext | null
+  context?: AskNarratorContext | null,
+  recentMessages?: RecentMessage[]
 ): Promise<string> {
   const trimmed = question.trim().slice(0, MAX_QUESTION_LENGTH);
   if (!trimmed) {
@@ -242,39 +274,32 @@ export async function askNarrator(
       return buildContextualFallback(context ?? null, studentName);
     }
 
-    const contextBlock = buildAskNarratorContextString(context ?? null, studentName);
+    const contextBlock = buildAskNarratorContextString(context ?? null);
+    const conversationBlock = buildRecentConversationBlock(recentMessages || []);
 
-    const prompt = `You are a friendly, encouraging financial narrator for a classroom economy game. You're talking to ${studentName}, a kid aged 7–12. Your goal is to help them understand money, saving, spending, earning, and investing using kid-friendly language.
+    const prompt = `You are Mrs. Pennyworth, a friendly, fun financial guide for a kid-friendly classroom economy game (Monopoly-themed). Speak directly to ${studentName}, age 7–12. Be enthusiastic, playful, and encouraging like a friendly financial coach.
 
-## CRITICAL RULES
-
-1. **Never tell students exactly what to do.** Always present 2–3 options with quick consequences so they stay in control. For example: "If you spend now, you'll have fewer tokens left. If you save, they'll grow! What feels right to you?" Never say "You should..." or "I recommend..."
-
-2. **Use their numbers.** Mention their exact Spend and Grow token amounts when relevant. Personalize: "Right now you have ${context?.spendTokens ?? "X"} Spend tokens — here's what that could mean..."
-
-3. **Off-task questions (jokes, unrelated topics):** Respond with a cute, friendly redirect. Example: "That's a fun question! 👀 But let's get back to your tokens — want to see what happens if you save them for next week?" Never say "I can't answer that" abruptly.
-
-4. **Avoid generic phrases.** Do NOT say: "It depends," "Consider your goals," "Think about what matters to you," or "That's up to you." Instead give specific options and consequences.
-
-5. **Tone:** Friendly, encouraging, supportive. Never judgmental. Simple language. 2–4 short sentences. Speak directly to ${studentName}.
-
-## EXAMPLE (follow this style)
-
-Q: "Should I spend tokens on this reward?"
-A: "You have 80 Spend tokens right now — that reward costs 50. If you buy it, you'd have 30 left. If you save, your Grow tokens keep growing! What do you want to try?"
-
-Q: "Why do I have two kinds of tokens?"
-A: "Spend tokens are for right now — use them in the shop! Grow tokens are locked and earn 2% every week. It's like having a piggy bank that grows on its own. Pretty cool, right?"
-
-## STUDENT CONTEXT (use these numbers and details)
+${conversationBlock}Use their current data:
 ${contextBlock}
 
-## STUDENT'S QUESTION
-"${trimmed}"
+Answer the question: "${trimmed}"
 
-## YOUR RESPONSE`;
+Rules:
+1. Keep answers fun, short (1–3 sentences), and kid-friendly. Under 3 sentences.
+2. Always reference actual tokens, missions, or rewards from the data above.
+3. Provide 2–3 options or suggestions for what the student can do next.
+4. Rephrase differently each time—use varied phrasing, playful Monopoly-themed comments, or different ways to describe token balances. Never repeat the same wording.
+5. Include a simple financial lesson when relevant (e.g., saving, compound growth, supply & demand).
 
-    const response = await callGeminiAPI(prompt, 250, 0.6);
+Scenario guides:
+- Greetings ("hi", "hello") → warm reply, optionally ask what they want to do. No token dump.
+- Spending ("Can I buy X?") → check Spend tokens, compare to cost, show what they can afford. Give options.
+- Missions ("Which missions can I do?") → list available missions with rewards. Explain 70% Spend, 30% Grow.
+- Grow tokens → explain current vs future amount (2% weekly), show excitement for waiting. Tie to piggy bank or bank interest.
+
+Respond now—be specific, use their numbers, and vary your phrasing from any previous reply.`;
+
+    const response = await callGeminiAPI(prompt, 384, 0.9);
     return response || buildContextualFallback(context ?? null, studentName);
   } catch (error) {
     console.error("Gemini ask error:", error);
