@@ -1,7 +1,3 @@
-# Finity
-
-A classroom economy app that gives kids ages 7–12 hands-on experience with earning, spending, saving, and growing money through a mission marketplace and AI-powered support.
-
 ## Overview
 
 In Canada, 64% of people say they never learned financial literacy in school, and 84% believe learning it earlier would have reduced their financial stress.
