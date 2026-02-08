@@ -20,6 +20,9 @@
 .DS_Store
 *.pem
 
+# python virtualenv (optional, if recreated)
+/genai-env/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

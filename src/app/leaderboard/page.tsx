@@ -98,7 +98,7 @@ export default function LeaderboardPage() {
           </div>
           <Button
             onClick={() => router.back()}
-            variant="outline"
+            variant="secondary"
             className="hidden md:block"
           >
             ← Back
@@ -115,7 +115,7 @@ export default function LeaderboardPage() {
         <div className="mt-6 md:hidden">
           <Button
             onClick={() => router.back()}
-            variant="outline"
+            variant="secondary"
             className="w-full"
           >
             ← Back

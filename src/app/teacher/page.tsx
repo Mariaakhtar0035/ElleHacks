@@ -19,6 +19,7 @@ import {
   createStudent,
   createMission,
   updateMission,
+  unassignMission,
   deleteMission,
   calculateReward,
   createReward,
