@@ -31,7 +31,7 @@ Finity turns financial literacy from a one-time lesson into a daily experience, 
 **Clone the Repo**
 
 ```bash
-git clone https://github.com/Mariaakhtar0035/ElleHacks.git
+git clone https://github.com/Mariaakhtar0035/Finity.git
 ```
 
 **Install Dependencies**
